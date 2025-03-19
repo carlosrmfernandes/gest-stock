@@ -1,5 +1,5 @@
 from src.config.data_base import db
-from flask import jsonify 
+from flask import jsonify, request
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -36,3 +36,18 @@ def delete_user(user_id):
     db.session.commit()
 
     return jsonify({"mensagem": "Usuáro deletado com sucesso!"}), 200
+
+
+def update_user(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"erro": "Usuário não encontrado"}), 404
+
+    data = request.get_json()
+    user.name = data.get("name", user.name)
+    user.email = data.get("email", user.email)
+    user.password = data.get("password", user.password)
+
+    db.session.commit()
+
+    return jsonify({"mensagem": "Usuário atualizado com sucesso!"}), 200

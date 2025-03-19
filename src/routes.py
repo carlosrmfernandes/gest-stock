@@ -22,3 +22,6 @@ def init_routes(app):
     def delete_user(user_id):
         return UserController.delete_user(user_id)
     
+    @app.route("/users/<int:user_id>", methods=["PUT"])
+    def update_user(user_id):
+        return UserController.update_user(user_id)

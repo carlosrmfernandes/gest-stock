@@ -1,6 +1,6 @@
 from flask import request, jsonify, make_response
 from src.Application.Service.user_service import UserService
-from src.Infrastructure.Model.user import User
+from src.Infrastructure.Model.user_model import User
 from src.config.data_base import db 
 
 class UserController:
@@ -49,6 +49,25 @@ class UserController:
             db.session.commit()
 
             return make_response(jsonify({"mensagem": "Usuário deletado com sucesso!"}), 200)
+
+        except Exception as e:
+            return make_response(jsonify({"erro": str(e)}), 500)
+
+    @staticmethod
+    def update_user(user_id):
+        try:
+            user = User.query.get(user_id)
+            if not user:
+                return make_response(jsonify({"erro": "Usuário não encontrado"}), 404)
+
+            data = request.get_json()
+            user.name = data.get("name", user.name)
+            user.email = data.get("email", user.email)
+            user.password = data.get("password", user.password)
+
+            db.session.commit()
+
+            return make_response(jsonify({"mensagem": "Usuário atualizado com sucesso!"}), 200)
 
         except Exception as e:
             return make_response(jsonify({"erro": str(e)}), 500)

@@ -1,4 +1,4 @@
-from src.Infrastructure.Model.user import User
+from src.Infrastructure.Model.user_model import User
 from src.config.data_base import db 
 
 class UserService:
