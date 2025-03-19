@@ -1,5 +1,7 @@
 from flask import request, jsonify, make_response
 from src.Application.Service.user_service import UserService
+from src.Infrastructure.Model.user import User
+from src.config.data_base import db 
 
 class UserController:
     @staticmethod
@@ -11,17 +13,42 @@ class UserController:
             password = data.get('password')
 
             if not name or not email or not password:
-                return make_response(jsonify({"erro": "Missing required fields"}), 400)
+                return make_response(jsonify({"erro": "Preencha todos os campos!"}), 400)
 
             user = UserService.create_user(name=name, email=email, password=password)
 
             return make_response(jsonify({
-                "mensagem": "Usuário salvo com sucesso",
+                "mensagem": "Usuário salvo com sucesso!",
                 "usuario": user.to_dict()
             }), 201)
 
         except ValueError as e:
             return make_response(jsonify({"erro": str(e)}), 409)
+
+        except Exception as e:
+            return make_response(jsonify({"erro": str(e)}), 500)
+        
+
+    @staticmethod
+    def get_users():
+        try:
+            users = User.query.all()
+            return make_response(jsonify([user.to_dict() for user in users]), 200)
+
+        except Exception as e:
+            return make_response(jsonify({"erro": str(e)}), 500)
+
+    @staticmethod
+    def delete_user(user_id):
+        try:
+            user = User.query.get(user_id)
+            if not user:
+                return make_response(jsonify({"erro": "Usuário não encontrado"}), 404)
+
+            db.session.delete(user)
+            db.session.commit()
+
+            return make_response(jsonify({"mensagem": "Usuário deletado com sucesso!"}), 200)
 
         except Exception as e:
             return make_response(jsonify({"erro": str(e)}), 500)

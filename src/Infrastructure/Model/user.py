@@ -1,4 +1,5 @@
-from src.config.data_base import db 
+from src.config.data_base import db
+from flask import jsonify 
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -19,3 +20,19 @@ class User(db.Model):
             "name": self.name,
             "email": self.email
         }  
+
+
+def get_users():
+    users = User.query.all()
+    return jsonify([user.to_dict() for user in users])
+
+
+def delete_user(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"erro": "Usuário não encontrado"}), 404
+    
+    db.session.delete(user)
+    db.session.commit()
+
+    return jsonify({"mensagem": "Usuáro deletado com sucesso!"}), 200
