@@ -8,17 +8,23 @@ class User(db.Model):
     name = db.Column(db.String(255), nullable=False)
     email = db.Column(db.String(255), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
+    cnpj = db.Column(db.String(20), nullable=False)
+    phone = db.Column(db.String(20), nullable=False)
 
-    def __init__(self, name, email, password):
+    def __init__(self, name, email, password, cnpj, phone):
         self.name = name
         self.email = email
         self.password = password
+        self.cnpj = cnpj
+        self.phone = phone
 
     def to_dict(self):
         return {
             "id": self.id,
             "name": self.name,
-            "email": self.email
+            "email": self.email,
+            "cnpj": self.cnpj,
+            "phone": self.phone
         }  
 
 
@@ -47,6 +53,8 @@ def update_user(user_id):
     user.name = data.get("name", user.name)
     user.email = data.get("email", user.email)
     user.password = data.get("password", user.password)
+    user.cnpj = data.get("cnpj", user.cnpj)
+    user.phone = data.get("phone", user.phone)
 
     db.session.commit()
 

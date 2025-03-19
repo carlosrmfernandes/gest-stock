@@ -3,7 +3,7 @@ from src.config.data_base import db
 
 class UserService:
     @staticmethod
-    def create_user(name, email, password):
+    def create_user(name, email, password,cnpj, phone):
         existing_user = User.query.filter_by(email=email).first()
         if existing_user:
             raise ValueError("O email já está cadastrado.")
@@ -11,7 +11,9 @@ class UserService:
         user = User(
             name=name,
             email=email,
-            password=password
+            password=password,
+            cnpj=cnpj,
+            phone=phone
         )
 
         db.session.add(user)
