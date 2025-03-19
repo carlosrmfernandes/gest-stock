@@ -6,13 +6,14 @@ from src.routes import init_routes
 app = Flask(__name__)
 app.config.from_object(Config)  
 
+db.init_app(app)
+init_routes(app)
+
 print("Banco de dados conectado em:", app.config["SQLALCHEMY_DATABASE_URI"])
 
-init_routes(app)
-db.init_app(app) 
-
 if __name__ == "__main__":
-    init_db(app) 
+    init_db(app)  
+
     print("Rotas registradas:")
     for rule in app.url_map.iter_rules():
         print(rule)

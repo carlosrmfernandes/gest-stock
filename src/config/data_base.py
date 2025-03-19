@@ -1,8 +1,13 @@
 from flask_sqlalchemy import SQLAlchemy
+import os
 
-db = SQLAlchemy()  
+db = SQLAlchemy()
 
 def init_db(app):
     with app.app_context():
-        db.create_all()
-        print("Banco de dados inicializado com sucesso!")
+        if not os.path.exists(app.config["SQLALCHEMY_DATABASE_URI"].replace("sqlite:///", "")):
+            db.create_all()
+            print("Banco de dados inicializado com sucesso!")
+        else:
+            print("Banco de dados já existe!")
+
