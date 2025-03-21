@@ -13,6 +13,7 @@ class UserController:
             password = data.get('password')
             cnpj = data.get('cnpj')
             phone = data.get('phone')
+            is_active = data.get('is_active')
 
             if not name or not email or not password:
                 return make_response(jsonify({"erro": "Preencha todos os campos!"}), 400)
@@ -30,7 +31,6 @@ class UserController:
         except Exception as e:
             return make_response(jsonify({"erro": str(e)}), 500)
         
-
     @staticmethod
     def get_users():
         try:
