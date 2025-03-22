@@ -10,7 +10,7 @@ class UserService:
         if existing_user:
             raise ValueError("O email já está cadastrado.")
 
-        user = User(  # NÃO PASSE `code` AQUI
+        user = User(  
             name=name,
             email=email,
             password=password,

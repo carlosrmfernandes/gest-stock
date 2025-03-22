@@ -73,3 +73,19 @@ class UserController:
 
         except Exception as e:
             return make_response(jsonify({"erro": str(e)}), 500)
+
+    def active_user():
+        data = request.get_json()
+        email = data.get('email')
+        code = data.get('code')
+        print(email)
+        user = User.query.filter_by(email=email).first()
+
+        if user and user.is_active == False and code == user.code:
+            user.is_active = True
+            db.session.commit()
+            return make_response(jsonify({"mensagem": "Usuário ativado com sucesso!"}), 200)
+        
+        elif user.is_active == True:
+            return make_response(jsonify({"ERRO": "ja atualizo porra"}), 666)
+
