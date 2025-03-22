@@ -3,3 +3,5 @@ Flask-SQLAlchemy==3.0.5
 Flask-Migrate==4.0.5
 Flask-CORS==4.0.0
 Twilio==9.5.0
+Flask-Bcrypt==1.0.1
+python-dotenv==1.0.1
