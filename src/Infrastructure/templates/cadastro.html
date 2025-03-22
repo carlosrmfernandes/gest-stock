@@ -31,50 +31,5 @@
         </form>
     </div>
 </body>
-<script>
-    function pedeCodigo() {
-        Swal.fire({
-            title: "Informe o código enviado para o seu WhatsApp:",
-            input: "text",
-            inputAttributes: {
-                autocapitalize: "off"
-            },
-            showCancelButton: true,
-            confirmButtonText: "Enviar",
-            showLoaderOnConfirm: true,
-            preConfirm: async (codigo) => {
-                if (!codigo) {
-                    Swal.showValidationMessage("O código precisa ser informado!")
-                    return false;
-                }
-                try {
-                    const response = await $.ajax({
-                        url: "",
-                        type: "",
-                        contentType: "application/json",
-                        data: JSON.stringify({ codigo: codigo })
-                    });
-                    return response;
-                } catch (error) {
-                    Swal.showValidateMessage("Erro ao validar o código!");
-                    return false;
-                }
-            },
-            allowOutsideClick: () => !Swal.isLoading()
-        }).then((result) => {
-            if (result.isConfirmed) {
-                Swal.fire({
-                    title: "Código validado com sucesso",
-                    icon: "Sucesso",
-                    draggable: true
-                });
-                setTimeout(() => {
-                    window.location.href = 'login.html';
-                }, 2000);
-            }
-        });
-    }
-
-</script>
 
 </html>
