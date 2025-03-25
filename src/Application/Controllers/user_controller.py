@@ -2,6 +2,7 @@ from flask import request, jsonify, make_response
 from src.Application.Service.user_service import UserService
 from src.Infrastructure.Model.user_model import User
 from src.config.data_base import db 
+from werkzeug.security import check_password_hash
 
 class UserController:
     @staticmethod
@@ -88,4 +89,34 @@ class UserController:
         
         elif user.is_active == True:
             return make_response(jsonify({"ERRO": "ja atualizo porra"}), 666)
+    
+    @staticmethod
+    def login_user():
+        try:
+            data = request.get_json()
+            email = data.get('email')
+            password = data.get('password')
+
+
+            user = User.query.filter_by(email=email).first()
+            
+            if not user:
+                return make_response(jsonify({"erro": "Usuário não encontrado!"}), 404)
+            
+            # Verificar se o usuário está ativo
+            if not user.is_active:
+                return make_response(jsonify({"erro": "Usuário não está ativo!"}), 403)
+
+            # Verificar se a senha fornecida corresponde ao hash armazenado no banco de dados
+            if not user.check_password(password):
+                return make_response(jsonify({"erro": "Senha incorreta!"}), 401)
+
+            # Aqui você pode gerar um token JWT ou qualquer outro mecanismo de autenticação se necessário
+            return make_response(jsonify({
+                "mensagem": "Login realizado com sucesso!",
+                "usuario": user.to_dict()
+            }), 200)
+
+        except Exception as e:
+            return make_response(jsonify({"erro": str(e)}), 500)
 

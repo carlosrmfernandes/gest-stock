@@ -28,3 +28,7 @@ def init_routes(app):
     @app.route("/users/<int:user_id>", methods=["PUT"])
     def update_user(user_id):
         return UserController.update_user(user_id)
+    
+    @app.route('/login', methods=['POST'])
+    def login():
+        return UserController.login_user()

@@ -31,7 +31,7 @@ class User(db.Model):
         self.password = bcrypt.generate_password_hash(senha_plana).decode('utf-8')
         
     def check_password(self, senha_plana):
-        return bcrypt.check_password_hash(self.senha, senha_plana)
+        return bcrypt.check_password_hash(self.password, senha_plana)
 
     def to_dict(self):
         return {
