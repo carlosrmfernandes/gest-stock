@@ -9,11 +9,11 @@ def init_routes(app):
             "mensagem": "API - OK",
         }), 200)
     
-    @app.route('/user', methods=['POST'])
+    @app.route('/new_user', methods=['POST'])
     def register_user():
         return UserController.register_user()
     
-    @app.route('/users',methods=['GET'])
+    @app.route('/list_users',methods=['GET'])
     def get_users():
         return UserController.get_users()
     
@@ -21,11 +21,11 @@ def init_routes(app):
     def active_user():
         return UserController.active_user()
     
-    @app.route("/users/<int:user_id>", methods=["DELETE"])
+    @app.route("/delete_user/<int:user_id>", methods=["DELETE"])
     def delete_user(user_id):
         return UserController.delete_user(user_id)
     
-    @app.route("/users/<int:user_id>", methods=["PUT"])
+    @app.route("/update_user/<int:user_id>", methods=["PUT"])
     def update_user(user_id):
         return UserController.update_user(user_id)
     
