@@ -103,15 +103,12 @@ class UserController:
             if not user:
                 return make_response(jsonify({"erro": "Usuário não encontrado!"}), 404)
             
-            # Verificar se o usuário está ativo
             if not user.is_active:
                 return make_response(jsonify({"erro": "Usuário não está ativo!"}), 403)
 
-            # Verificar se a senha fornecida corresponde ao hash armazenado no banco de dados
             if not user.check_password(password):
                 return make_response(jsonify({"erro": "Senha incorreta!"}), 401)
 
-            # Aqui você pode gerar um token JWT ou qualquer outro mecanismo de autenticação se necessário
             return make_response(jsonify({
                 "mensagem": "Login realizado com sucesso!",
                 "usuario": user.to_dict()

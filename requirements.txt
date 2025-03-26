@@ -5,3 +5,4 @@ Flask-CORS==4.0.0
 Twilio==9.5.0
 Flask-Bcrypt==1.0.1
 python-dotenv==1.0.1
+werkzeug==3.1.3
