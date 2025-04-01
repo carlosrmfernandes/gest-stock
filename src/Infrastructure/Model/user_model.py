@@ -3,6 +3,8 @@ from flask import jsonify, request
 from src.Infrastructure.http.whats_app import whats_app_api
 from random import randint
 from flask_bcrypt import Bcrypt
+from flask_jwt_extended import create_access_token
+
 bcrypt = Bcrypt()
 
 class User(db.Model):
@@ -33,6 +35,9 @@ class User(db.Model):
     def check_password(self, senha_plana):
         return bcrypt.check_password_hash(self.password, senha_plana)
 
+    def generate_auth_token(self):
+        return create_access_token(identity=self.id)
+
     def to_dict(self):
         return {
             "id": self.id,
@@ -40,7 +45,6 @@ class User(db.Model):
             "email": self.email,
             "cnpj": self.cnpj,
             "phone": self.phone,
-            "code": self.code,
             "is_active": self.is_active
         }
 
@@ -66,7 +70,10 @@ def update_user(user_id):
     data = request.get_json()
     user.name = data.get("name", user.name)
     user.email = data.get("email", user.email)
-    user.password = data.get("password", user.password)
+    
+    if 'password' in data:
+        user.set_password(data['password'])
+        
     user.cnpj = data.get("cnpj", user.cnpj)
     user.phone = data.get("phone", user.phone)
 

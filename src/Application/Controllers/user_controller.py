@@ -3,6 +3,7 @@ from src.Application.Service.user_service import UserService
 from src.Infrastructure.Model.user_model import User
 from src.config.data_base import db 
 from werkzeug.security import check_password_hash
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 
 class UserController:
     @staticmethod
@@ -33,8 +34,10 @@ class UserController:
             return make_response(jsonify({"erro": str(e)}), 500)
         
     @staticmethod
+    @jwt_required()
     def get_users():
         try:
+            current_user = get_jwt_identity()  
             users = User.query.all()
             return make_response(jsonify([user.to_dict() for user in users]), 200)
 
@@ -42,11 +45,17 @@ class UserController:
             return make_response(jsonify({"erro": str(e)}), 500)
 
     @staticmethod
+    @jwt_required()
     def delete_user(user_id):
         try:
+            current_user_id = get_jwt_identity()
             user = User.query.get(user_id)
+            
             if not user:
                 return make_response(jsonify({"erro": "Usuário não encontrado"}), 404)
+            
+            if str(user.id) != current_user_id:
+                return make_response(jsonify({"erro": "Não autorizado"}), 403)
 
             db.session.delete(user)
             db.session.commit()
@@ -57,16 +66,24 @@ class UserController:
             return make_response(jsonify({"erro": str(e)}), 500)
 
     @staticmethod
+    @jwt_required()
     def update_user(user_id):
         try:
+            current_user_id = get_jwt_identity()
             user = User.query.get(user_id)
+            
             if not user:
                 return make_response(jsonify({"erro": "Usuário não encontrado"}), 404)
+            
+            if str(user.id) != current_user_id:
+                return make_response(jsonify({"erro": "Não autorizado"}), 403)
 
             data = request.get_json()
             user.name = data.get("name", user.name)
             user.email = data.get("email", user.email)
-            user.password = data.get("password", user.password)
+            
+            if 'password' in data:
+                user.password = data['password']
 
             db.session.commit()
 
@@ -75,6 +92,7 @@ class UserController:
         except Exception as e:
             return make_response(jsonify({"erro": str(e)}), 500)
 
+    @staticmethod
     def active_user():
         data = request.get_json()
         email = data.get('email')
@@ -97,7 +115,6 @@ class UserController:
             email = data.get('email')
             password = data.get('password')
 
-
             user = User.query.filter_by(email=email).first()
             
             if not user:
@@ -109,11 +126,13 @@ class UserController:
             if not user.check_password(password):
                 return make_response(jsonify({"erro": "Senha incorreta!"}), 401)
 
+            access_token = create_access_token(identity=str(user.id))
+            
             return make_response(jsonify({
                 "mensagem": "Login realizado com sucesso!",
-                "usuario": user.to_dict()
+                "usuario": user.to_dict(),
+                "access_token": access_token
             }), 200)
 
         except Exception as e:
             return make_response(jsonify({"erro": str(e)}), 500)
-
