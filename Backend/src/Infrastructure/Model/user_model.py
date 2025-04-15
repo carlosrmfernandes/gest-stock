@@ -1,6 +1,6 @@
-from Backend.src.config.data_base import db
+from src.config.data_base import db
 from flask import jsonify, request
-from Backend.src.Infrastructure.http.whats_app import whats_app_api
+from src.Infrastructure.http.whats_app import whats_app_api
 from random import randint
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import create_access_token

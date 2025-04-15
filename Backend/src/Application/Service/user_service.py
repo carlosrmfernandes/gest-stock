@@ -1,6 +1,6 @@
-from Backend.src.Infrastructure.Model.user_model import User
-from Backend.src.config.data_base import db 
-from Backend.src.Infrastructure.http.whats_app import whats_app_api
+from src.Infrastructure.Model.user_model import User
+from src.config.data_base import db 
+from src.Infrastructure.http.whats_app import whats_app_api
 from random import randint
 
 class UserService:

@@ -1,7 +1,7 @@
 from flask import request, jsonify, make_response
-from Backend.src.Application.Service.user_service import UserService
-from Backend.src.Infrastructure.Model.user_model import User
-from Backend.src.config.data_base import db 
+from src.Application.Service.user_service import UserService
+from src.Infrastructure.Model.user_model import User
+from src.config.data_base import db 
 from werkzeug.security import check_password_hash
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 

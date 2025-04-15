@@ -1,7 +1,7 @@
 from flask import Flask
-from Backend.src.config.config import Config  
-from Backend.src.config.data_base import db, init_db  
-from Backend.src.routes import init_routes  
+from src.config.config import Config  
+from src.config.data_base import db, init_db  
+from src.routes import init_routes  
 from flask_jwt_extended import JWTManager
 
 app = Flask(__name__)
