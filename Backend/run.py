@@ -3,9 +3,11 @@ from src.config.config import Config
 from src.config.data_base import db, init_db  
 from src.routes import init_routes  
 from flask_jwt_extended import JWTManager
+from flask_cors import CORS
 
 app = Flask(__name__)
 app.config.from_object(Config)
+CORS(app)
 jwt = JWTManager(app)
 db.init_app(app)
 init_routes(app)

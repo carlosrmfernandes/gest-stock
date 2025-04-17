@@ -1,12 +1,33 @@
-import './css/Cadastro.css'
+import 'css/Cadastro.css'
 
 function CadastroUser() {
-  function Cadastrado(){
-    alert("Cadastro realizado com sucesso!")
+  async function Cadastrado(){
+    let api = await fetch("http://127.0.0.1:8000/new_user",{
+      method: 'POST',
+      body:JSON.stringify({
+        "name": "teste",
+        "email": "teste@email.com",     //aqui a gente vai ter q passar as infos pro back q vai mandar pro bd
+        "password": "123456",
+        "cnpj": "12345678901234",
+        "phone": "11987654321",
+      }),
+      headers:{
+        'Content-Type': 'application/json'
+      }
+    })
+
+    if (api.ok){
+      let response = await api.json()
+      console.log(response)
+    }else{
+      let responseError = await api.json()
+      console.log(responseError)
+    }
   }
+
   return (
     <div id="cadastro-container">
-        <h1>Cadastro</h1>
+        <h2>Cadastro</h2>
           <form className="cadastro-form">
           <label>
             Nome:
