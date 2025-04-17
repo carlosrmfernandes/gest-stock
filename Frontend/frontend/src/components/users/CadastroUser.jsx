@@ -1,9 +1,12 @@
-import './Css/Cadastro.css'
+import './css/Cadastro.css'
 
-function Cadastro() {
+function CadastroUser() {
+  function Cadastrado(){
+    alert("Cadastro realizado com sucesso!")
+  }
   return (
-      <div id="cadastro-container">
-        <h2>Cadastro</h2>
+    <div id="cadastro-container">
+        <h1>Cadastro</h1>
           <form className="cadastro-form">
           <label>
             Nome:
@@ -25,10 +28,10 @@ function Cadastro() {
             Senha:
             <input type="password" name="senha"/>
           </label>
-          <button type="submit">Cadastrar-se</button>
+          <button type="submit" onClick={Cadastrado}>Cadastrar-se</button>
         </form>
       </div>
-  )
-}
+  );
+}   
 
-export default Cadastro
+export default CadastroUser
