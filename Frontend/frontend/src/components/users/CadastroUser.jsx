@@ -1,4 +1,4 @@
-import 'css/Cadastro.css'
+import './css/Cadastro.css'
 
 function CadastroUser() {
   async function Cadastrado(){

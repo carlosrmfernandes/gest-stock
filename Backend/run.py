@@ -1,7 +1,7 @@
 from flask import Flask
 from src.config.config import Config  
 from src.config.data_base import db, init_db  
-from src.routes import init_routes  
+from Backend.src.user_routes import init_routes  
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 
