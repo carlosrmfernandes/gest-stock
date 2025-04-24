@@ -40,22 +40,6 @@ class ProductsController:
             return make_response(jsonify({"erro": str(e)}), 500)
 
     @staticmethod
-    def delete_products(products_id):
-        try:
-            products = Products.query.get(products_id)
-            
-            if not products:
-                return make_response(jsonify({"erro": "Produtos não encontrado"}), 404)
-
-            db.session.delete(products)
-            db.session.commit()
-
-            return make_response(jsonify({"mensagem": "Produto deletado com sucesso!"}), 200)
-
-        except Exception as e:
-            return make_response(jsonify({"erro": str(e)}), 500)
-
-    @staticmethod
     def update_produts(products_id):
         try:
             products = Products.query.get(products_id)
@@ -67,6 +51,7 @@ class ProductsController:
             products.name = data.get("name", products.name)
             products.price = data.get("price", products.price)
             products.quantity = data.get("quantity", products.quantity)
+            products.status = data.get("status", products.status)
             
             if 'name' in data:
                 products.name = data['name']

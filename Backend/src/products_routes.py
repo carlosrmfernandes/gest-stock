@@ -18,7 +18,7 @@ def init_routes(app):
     
     @app.route('/active_products', methods=['POST'])
     def active_products():
-        return ProductsController.status()
+        return ProductsController.active_products()
     
     @app.route("/update_products/<string:products_name>", methods=["PUT"])
     def update_products(products_name):

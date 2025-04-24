@@ -11,6 +11,8 @@ class Products(db.Model):
     status = db.Column(db.Boolean, nullable=False, default=False)
     imagem = db.Column(db.String(255), nullable=True)
 
+    #tem q fazer a ligacao entre tabelas com uma fk dps, ligar o produto com o usuario 
+
     def __init__(self, name, price, quantity, status=False, imagem=None):
         self.name = name
         self.price = price
