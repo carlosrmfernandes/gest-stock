@@ -114,8 +114,9 @@ class UserController:
             data = request.get_json()
             email = data.get('email')
             password = data.get('password')
-
+            print(data)
             user = User.query.filter_by(email=email).first()
+            print(user)
             
             if not user:
                 return make_response(jsonify({"erro": "Usuário não encontrado!"}), 404)
@@ -135,4 +136,5 @@ class UserController:
             }), 200)
 
         except Exception as e:
+            print(str(e))
             return make_response(jsonify({"erro": str(e)}), 500)
