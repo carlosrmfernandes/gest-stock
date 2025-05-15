@@ -1,4 +1,4 @@
-from flask import request, jsonify, make_response
+from flask import request, jsonify, make_response, session
 from src.Application.Service.user_service import UserService
 from src.Infrastructure.Model.user_model import User
 from src.config.data_base import db 
@@ -128,7 +128,6 @@ class UserController:
                 return make_response(jsonify({"erro": "Senha incorreta!"}), 401)
 
             access_token = create_access_token(identity=str(user.id))
-            
             return make_response(jsonify({
                 "mensagem": "Login realizado com sucesso!",
                 "usuario": user.to_dict(),

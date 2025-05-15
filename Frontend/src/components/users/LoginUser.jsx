@@ -1,5 +1,6 @@
 import "./css/Login.css";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function LoginUser() {
   const [formData, setFormData] = useState({
@@ -10,6 +11,7 @@ function LoginUser() {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
+  const navigate = useNavigate();
 
   async function Logado(e) {
     e.preventDefault();
@@ -24,9 +26,12 @@ function LoginUser() {
       });
 
       const response = await api.json();
+      console.log(response);
 
-      if (api.ok) {
-        console.log("✅ Login realizado:", response);
+      if (api.ok && response.access_token && response.usuario?.id) {
+        sessionStorage.setItem("token", response.access_token);
+        sessionStorage.setItem("user_id", response.usuario.id);
+        navigate("/items");
       } else {
         console.log("❌ Erro no login:", response);
       }

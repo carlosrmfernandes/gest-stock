@@ -1,22 +1,21 @@
 from src.Infrastructure.Model.products_model import Products
-from src.config.data_base import db 
+from src.config.data_base import db
 
 class ProductsService:
     @staticmethod
-    def create_products(name, price, quantity, status=False, imagem=None):
-
-        existing_user = Products.query.filter_by(name=name).first()
-        if existing_user:
+    def create_products(name, price, quantity, imagem, user):
+        existing_product = Products.query.filter_by(name=name).first()
+        if existing_product:
             raise ValueError("Este produto já está cadastrado.")
 
-        products = Products(  
+        product = Products(
             name=name,
             price=price,
             quantity=quantity,
-            status=status,
-            imagem=imagem
+            imagem=imagem,
+            user=user
         )
 
-        db.session.add(products)
+        db.session.add(product)
         db.session.commit()
-        return products
+        return product

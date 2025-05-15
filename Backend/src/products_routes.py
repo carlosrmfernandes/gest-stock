@@ -1,30 +1,34 @@
+from flask import Blueprint, jsonify, make_response
 from src.Application.Controllers.products_controller import ProductsController
-from flask import jsonify, make_response
+from flask_jwt_extended import jwt_required, get_jwt_identity
+products_bp = Blueprint('products', __name__)
 
-def init_routes(app):    
-    @app.route('/api', methods=['GET'])
-    def health():
-        return make_response(jsonify({ 
-            "mensagem": "API - OK",
-        }), 200)
-    
-    @app.route('/new_products', methods=['POST'])
-    def register_products():
-        return ProductsController.register_products()
-    
-    @app.route('/list_products', methods=['GET'])
-    def get_products():
-        return ProductsController.get_users()
-    
-    @app.route('/active_products', methods=['POST'])
-    def active_products():
-        return ProductsController.active_products()
-    
-    @app.route("/update_products/<string:products_name>", methods=["PUT"])
-    def update_products(products_name):
-        return ProductsController.update_user(products_name)
-    
-    @app.route("/details_products/<string:products_name>", methods=["GET"])
-    def get_details_products(products_name):
-        return ProductsController.details_user(products_name)
-    
+@products_bp.route('/new_product', methods=['POST'])
+@jwt_required()
+def register_products():
+    return ProductsController.register_products(get_jwt_identity())
+
+@products_bp.route('/list_products', methods=['GET'])
+@jwt_required()
+def get_products():
+    return ProductsController.get_products() 
+
+@products_bp.route('/list_user_products/<int:id>', methods=['GET'])
+@jwt_required()
+def get_user_products(id):
+    return ProductsController.get_user_products(id) 
+
+@products_bp.route('/update_products/<string:products_name>', methods=['PUT'])
+@jwt_required()
+def update_products(products_name):
+    return ProductsController.update_produts(products_name)
+
+@products_bp.route('/details_product/<int:id>', methods=['GET'])
+@jwt_required()
+def get_details_product(id):
+    return ProductsController.get_details_product(id)
+
+@products_bp.route('/buy_products/<int:id>', methods=['POST'])
+@jwt_required()
+def buy_product(id):
+    return ProductsController.buy_products(id)
