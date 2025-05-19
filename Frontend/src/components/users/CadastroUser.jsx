@@ -44,7 +44,7 @@ function CadastroUser() {
 
   return (
     <div id="cadastro-container">
-      <h2>Cadastro</h2>
+      <h1>Cadastro</h1>
       <form className="cadastro-form" onSubmit={Cadastrado}>
         <label>
           Nome:

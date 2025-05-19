@@ -1,1 +1,46 @@
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    font-family: Lexend, sans-serif;
+}
 
+    .site-name {
+        font-size: 24px;
+        font-weight: semibold;
+    }
+
+    .app-buttons {
+        display: flex;
+        gap: 10px;
+        font-size: 16px;
+    }
+
+    .app-buttons a button {
+        width: 100%;
+        padding: 10px;
+        background: #0055ffc0;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .app-buttons a button:hover {
+        background: #0055ff7e;
+    }
+
+main {
+    min-height: calc(100vh - 145px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 40px;    
+}
+
+footer {
+    text-align: center;
+    padding: 20px 0;
+    font-family: Lexend, sans-serif;
+}
