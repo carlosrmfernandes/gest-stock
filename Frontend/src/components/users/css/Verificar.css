@@ -1,4 +1,4 @@
-#login-container {
+#verificar-container {
     font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
     max-width: 400px;
     margin: 50px auto;
@@ -8,23 +8,23 @@
     background-color: #242424;
   }
   
-  #login-container h1 {
+  #verificar-container h1 {
     text-align: center;
   }
   
-  .login-form label {
+  .verificar-form label {
     display: block;
     margin-bottom: 15px;
   }
   
-  .login-form input {
+  .verificar-form input {
     width: 100%;
     padding: 8px;
     margin-top: 4px;
     box-sizing: border-box;
   }
   
-  .login-form button {
+  .verificar-form button {
     width: 100%;
     padding: 10px;
     background: #0055ffc0;
@@ -34,6 +34,6 @@
     cursor: pointer;
   }
   
-  .login-form button:hover {
+  .verificar-form button:hover {
     background: #0055ff7e;
   } 

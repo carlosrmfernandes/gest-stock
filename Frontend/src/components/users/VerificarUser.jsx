@@ -1,4 +1,5 @@
 import { useState } from "react";
+import "./css/Verificar.css";
 
 function VerificarUser() {
   const [email, setEmail] = useState("");
@@ -28,7 +29,7 @@ function VerificarUser() {
 
   return (
     <div id="verificar-container">
-      <h2>Verificar Código</h2>
+      <h1>Verificar Código</h1>
       <form className="verificar-form" onSubmit={handleSubmit}>
         <label>
           Email:

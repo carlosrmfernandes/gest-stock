@@ -16,7 +16,7 @@ createRoot(document.getElementById("root")).render(
         <Route path="/items" element={<Items />}> </Route>
         <Route path="/cadastro-user" element={<CadastroUser />}> </Route>
         <Route path="/login-user" element={<LoginUser />}> </Route>
-        <Route path="/verificar_user" element={<VerificarUser />} />
+        <Route path="/verificar-user" element={<VerificarUser />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>
