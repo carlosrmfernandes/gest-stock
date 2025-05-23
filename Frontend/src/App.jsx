@@ -6,10 +6,10 @@ function App() {
       <header>
         <h1 className='site-name'>Gest Stock</h1>
         <div className='app-buttons'>
-          <a href="/cadastro-user">
+          <a href="/cadastro">
             <button className='btn-cadastro'>Cadastrar</button>
           </a>
-          <a href="/login-user">
+          <a href="/login">
             <button className='btn-login'>Login</button>
           </a>
         </div>

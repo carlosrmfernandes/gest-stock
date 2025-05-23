@@ -31,7 +31,7 @@ function LoginUser() {
       if (api.ok && response.access_token && response.usuario?.id) {
         sessionStorage.setItem("token", response.access_token);
         sessionStorage.setItem("user_id", response.usuario.id);
-        navigate("/items");
+        navigate("/store_products");
       } else {
         console.log("❌ Erro no login:", response);
       }

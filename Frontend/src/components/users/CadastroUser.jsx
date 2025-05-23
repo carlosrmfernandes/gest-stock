@@ -18,7 +18,7 @@ function CadastroUser() {
   };
 
   async function Cadastrado(e) {
-    e.preventDefault(); // impede o recarregamento da página
+    e.preventDefault(); 
 
     try {
       const api = await fetch("http://127.0.0.1:8000/new_user", {
@@ -33,7 +33,7 @@ function CadastroUser() {
 
       if (api.ok) {
         console.log("✅ Usuário cadastrado:", response);
-        navigate("/verificar_user", { state: { email: formData.email } });
+        navigate("/verificar", { state: { email: formData.email } });
       } else {
         console.log("❌ Erro ao cadastrar:", response);
       }
