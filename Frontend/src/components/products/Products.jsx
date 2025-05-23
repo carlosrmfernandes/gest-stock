@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
+import "./css/Products.css";
 import verify from "../../hooks/autenticate";
-function Items() {
+function Products() {
   useEffect(() => {
     verify();
   });
@@ -12,4 +13,4 @@ function Items() {
   );
 }
 
-export default Items;
+export default Products;
