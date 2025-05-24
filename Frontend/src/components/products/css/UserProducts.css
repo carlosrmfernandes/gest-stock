@@ -1,3 +1,24 @@
+.storePrdotos-btn {
+  width: 200px;
+  margin-top: 20px;
+  padding: 12px 20px;
+  background-color: #0055ff;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+  margin-top: auto;
+}
+
+.storePrdotos-btn:hover {
+  background-color: #003fcc;
+  transform: scale(1.05);
+}
+
+
 #listar-container {
   display: flex;
   flex-direction: column;
