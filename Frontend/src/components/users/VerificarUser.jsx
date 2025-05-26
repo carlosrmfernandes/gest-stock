@@ -15,14 +15,14 @@ function VerificarUser() {
       },
       body: JSON.stringify({ email, code }),
     });
-    
+
     const navigate = useNavigate();
     const data = await response.json();
 
-    if (response.ok) {
+    if (response.status === 200) {
       alert("✅ Usuário ativado com sucesso!");
-      navigate("/login");
-    } else if (response.status === 666) {
+      navigate("/login", { state: { email: formData.email } });
+    } else if (response.status === 777) {
       alert("⚠️ Usuário já está ativado.");
     } else {
       alert("❌ Erro: " + (data.ERRO || data.erro || "Código incorreto"));
