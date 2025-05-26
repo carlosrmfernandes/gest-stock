@@ -106,7 +106,7 @@ class UserController:
             return make_response(jsonify({"mensagem": "Usuário ativado com sucesso!"}), 200)
         
         elif user.is_active == True:
-            return make_response(jsonify({"ERRO": "ja atualizo porra"}), 666)
+            return make_response(jsonify({"error": "ja atualizo"}), 401)
     
     @staticmethod
     def login_user():

@@ -3,6 +3,7 @@ from src.config.config import Config
 from src.config.data_base import db, init_db  
 from src.user_routes import user_bp
 from src.products_routes import products_bp
+from src.soldProducts_routes import sold_product_bp
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 
@@ -15,6 +16,7 @@ jwt = JWTManager(app)
 db.init_app(app)
 app.register_blueprint(user_bp)
 app.register_blueprint(products_bp)
+app.register_blueprint(sold_product_bp)
 
 
 if __name__ == "__main__":

@@ -1,7 +1,6 @@
 from src.config.data_base import db
 from flask import jsonify, request
 
-from src.config.data_base import db
 
 class Products(db.Model):
     __tablename__ = 'products'
