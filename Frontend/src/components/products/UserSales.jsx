@@ -40,8 +40,16 @@ function UserSales() {
     <div>
       <header>
         <h1 className="site-name">Gest Stock</h1>
-        <a href="/user_sales">
-          <button className="meusProdutos-btn">Minhas Vendas</button>
+        <a href="/user_purchases">
+          <button className="meusProdutos-btn">Minhas Compras</button>
+        </a>
+
+        <a href="/store_products">
+          <button className="meusProdutos-btn">Loja</button>
+        </a>
+
+        <a href="/user_products">
+          <button className="meusProdutos-btn">Meus Produtos</button>
         </a>
       </header>
 

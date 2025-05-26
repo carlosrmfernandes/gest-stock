@@ -15,7 +15,7 @@ async function verify() {
     } else {
       console.warn("Token inválido. Redirecionando para login...");
       sessionStorage.clear();
-      window.location.href = "/login-user";
+      window.location.href = "/login";
     }
   } catch (error) {
     console.error("Erro na verificação:", error);

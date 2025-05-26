@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./css/Verificar.css";
 
 function VerificarUser() {
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -16,14 +18,14 @@ function VerificarUser() {
       body: JSON.stringify({ email, code }),
     });
 
-    const navigate = useNavigate();
     const data = await response.json();
 
     if (response.status === 200) {
       alert("✅ Usuário ativado com sucesso!");
-      navigate("/login", { state: { email: formData.email } });
-    } else if (response.status === 777) {
+      navigate("/login", { state: { email } });
+    } else if (response.status === 401) {
       alert("⚠️ Usuário já está ativado.");
+      navigate("/login", { state: { email } });
     } else {
       alert("❌ Erro: " + (data.ERRO || data.erro || "Código incorreto"));
     }

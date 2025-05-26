@@ -49,54 +49,73 @@ function NewProduct() {
   };
 
   return (
-    <div style={{ maxWidth: 400, margin: "auto", padding: 20 }}>
-      <h2>Cadastrar Novo Produto</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Nome:</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-        </div>
+    <>
+      <header>
+        {" "}
+        <h1 className="site-name">Gest Stock</h1>
+        <a href="/store_products">
+          <button className="meusProdutos-btn">Loja</button>
+        </a>
+        <a href="/user_purchases">
+          <button className="meusProdutos-btn">Minhas Compras</button>
+        </a>
+        <a href="/user_sales">
+          <button className="meusProdutos-btn">Minhas Vendas</button>
+        </a>
+        <a href="/user_products">
+          <button className="meusProdutos-btn">Meus Produtos</button>
+        </a>
+      </header>
 
-        <div>
-          <label>Preço:</label>
-          <input
-            type="number"
-            step="0.01"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            required
-          />
-        </div>
+      <div style={{ maxWidth: 400, margin: "auto", padding: 20 }}>
+        <h2>Cadastrar Novo Produto</h2>
+        <form onSubmit={handleSubmit}>
+          <div>
+            <label>Nome:</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+          </div>
 
-        <div>
-          <label>Quantidade:</label>
-          <input
-            type="number"
-            value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
-            required
-          />
-        </div>
+          <div>
+            <label>Preço:</label>
+            <input
+              type="number"
+              step="0.01"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              required
+            />
+          </div>
 
-        <div>
-          <label>Imagem (URL):</label>
-          <input
-            type="text"
-            value={imagem}
-            onChange={(e) => setImagem(e.target.value)}
-          />
-        </div>
+          <div>
+            <label>Quantidade:</label>
+            <input
+              type="number"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+              required
+            />
+          </div>
 
-        <button type="submit">Cadastrar Produto</button>
-      </form>
+          <div>
+            <label>Imagem (URL):</label>
+            <input
+              type="text"
+              value={imagem}
+              onChange={(e) => setImagem(e.target.value)}
+            />
+          </div>
 
-      {message && <p>{message}</p>}
-    </div>
+          <button type="submit">Cadastrar Produto</button>
+        </form>
+
+        {message && <p>{message}</p>}
+      </div>
+    </>
   );
 }
 
