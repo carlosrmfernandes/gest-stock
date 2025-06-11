@@ -1,17 +1,30 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useLocation } from "react-router-dom"; 
 
 function NewProduct() {
+  const location = useLocation();
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [quantity, setQuantity] = useState("");
   const [imagem, setImagem] = useState("");
   const [message, setMessage] = useState("");
 
+
+  useEffect(() => {
+    if (location.state) {
+      const { name, price, quantity, imagem } = location.state;
+      setName(name || "");
+      setPrice(price || "");
+      setQuantity(quantity || "");
+      setImagem(imagem || "");
+    }
+  }, [location.state]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const token = sessionStorage.getItem("token"); // ajustado aqui
+    const token = sessionStorage.getItem("token");
     if (!token) {
       setMessage("Usuário não autenticado.");
       return;
@@ -51,7 +64,6 @@ function NewProduct() {
   return (
     <>
       <header>
-        {" "}
         <h1 className="site-name">Gest Stock</h1>
         <a href="/store_products">
           <button className="meusProdutos-btn">Loja</button>

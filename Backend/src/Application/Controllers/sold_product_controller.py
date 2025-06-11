@@ -1,5 +1,5 @@
 from flask import request, jsonify
-from src.Infrastructure.Model.sold_products import SoldProduct  # ajusta o caminho conforme seu projeto
+from src.Infrastructure.Model.sold_products import SoldProduct  
 from src.config.data_base import db
 
 class SoldProductController:

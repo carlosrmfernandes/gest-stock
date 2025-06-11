@@ -35,7 +35,8 @@ class ProductsController:
             }), 201)
 
         except ValueError as e:
-            return make_response(jsonify({"erro": str(e)}), 409)
+            
+            return (make_response(jsonify({"erro": str(e)}), 409))
         except Exception as e:
             return make_response(jsonify({"erro": str(e)}), 500)
 
@@ -71,7 +72,6 @@ class ProductsController:
             product.price = data.get("price", product.price)
             product.quantity = data.get("quantity", product.quantity)
 
-            # status automático conforme quantidade
             product.status = product.quantity >= 1
 
             db.session.commit()

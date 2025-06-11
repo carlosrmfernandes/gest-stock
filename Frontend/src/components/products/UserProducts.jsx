@@ -7,7 +7,6 @@ function UserProducts() {
   const [erro, setErro] = useState("");
   const [mensagem, setMensagem] = useState("");
 
-  // Estado para controlar o modal de update
   const [showModal, setShowModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [formData, setFormData] = useState({

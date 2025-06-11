@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import "./css/Store.css";
 import verify from "../../hooks/autenticate";
+import { useNavigate } from "react-router-dom";
 
 function UserProducts() {
   const [products, setProducts] = useState([]);
   const [erro, setErro] = useState("");
   const [mensagem, setMensagem] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     verify();
@@ -63,7 +65,7 @@ function UserProducts() {
 
       if (response.ok) {
         setMensagem(data.mensagem);
-        fetchProducts(); // Atualiza a lista após compra
+        fetchProducts(); 
       } else {
         alert(data.erro || "Erro na compra");
       }
@@ -73,6 +75,17 @@ function UserProducts() {
     }
   };
 
+  const handleCopiar = (item) => {
+    navigate("/adicionar-produto", {
+      state: {
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        imagem: item.imagem,
+      },
+    });
+  };
+
   return (
     <div>
       <header>
@@ -80,11 +93,9 @@ function UserProducts() {
         <a href="/user_purchases">
           <button className="meusProdutos-btn">Minhas Compras</button>
         </a>
-
         <a href="/user_sales">
           <button className="meusProdutos-btn">Minhas Vendas</button>
         </a>
-
         <a href="/user_products">
           <button className="meusProdutos-btn">Meus Produtos</button>
         </a>
@@ -130,6 +141,12 @@ function UserProducts() {
                     disabled={item.quantity === 0}
                   >
                     Comprar
+                  </button>
+                  <button
+                    className="comprar-btn"
+                    onClick={() => handleCopiar(item)}
+                  >
+                    Copiar Produto
                   </button>
                 </td>
               </tr>

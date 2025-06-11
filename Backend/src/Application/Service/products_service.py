@@ -5,9 +5,6 @@ from src.Infrastructure.Model.user_model import User
 class ProductsService:
     @staticmethod
     def create_products(name, price, quantity, imagem, user):
-        existing_product = Products.query.filter_by(name=name).first()
-        if existing_product:
-            raise ValueError("Este produto já está cadastrado.")
 
         if isinstance(user, int):
             user = User.query.get(user)
