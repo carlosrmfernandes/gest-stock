@@ -1,0 +1,45 @@
+#verificar-container {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 30px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #242424;
+}
+
+#verificar-container h1 {
+  text-align: center;
+}
+  
+.verificar-form label {
+  display: block;
+  margin-bottom: 15px;
+}
+  
+.verificar-form input {
+  width: 100%;
+  padding: 8px;
+  margin-top: 4px;
+  box-sizing: border-box;
+}
+  
+.verificar-form button {
+  width: 200px;
+  margin-top: 20px;
+  margin-left: 90px;
+  padding: 12px 20px;
+  background-color: #0055ff;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+}
+  
+.verificar-form button:hover {
+  background-color: #003fcc;
+  transform: scale(1.05);
+} 

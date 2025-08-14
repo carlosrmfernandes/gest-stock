@@ -1,0 +1,54 @@
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 30px;
+  font-family: Lexend, sans-serif;
+}
+
+.site-name {
+  font-size: 24px;
+  font-weight: semibold;
+}
+
+.app-buttons {
+  display: flex;
+  gap: 10px;
+  font-size: 16px;
+}
+
+.app-buttons a button {
+  width: 150px;
+  padding: 12px 20px;
+  background-color: #0055ff;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.app-buttons a button:hover {
+  background-color: #003fcc;
+  transform: scale(1.05);
+}
+
+main {
+  min-height: calc(100vh - 145px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 40px;    
+}
+
+footer {
+  text-align: center;
+  padding: 20px 0;
+  font-family: Lexend, sans-serif;
+}
+
+#box-img{
+  margin-right: 100px;
+}
