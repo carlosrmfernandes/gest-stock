@@ -1,5 +1,4 @@
-Flask==2.1.0
-flask_sqlalchemy
-mysql-connector-python
-werkzeug==2.0.2
-sqlalchemy==1.4.49
+Flask>=3.0
+Flask-SQLALchemy>=3.1
+Werkzeug>=3.0
+SQLALchemy>=2.0
