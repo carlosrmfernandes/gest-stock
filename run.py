@@ -1,15 +1,14 @@
 from flask import Flask
 from src.config.data_base import init_db
 from src.routes import init_routes
+from flask_jwt_extended import JWTManager
 
 def create_app():
-    """
-    Função que cria e configura a aplicação Flask.
-    """
     app = Flask(__name__)
+    app.config["SECRET_KEY"] = "super-secret-key-da-nossa-app-jwt"
+    jwt = JWTManager(app)
 
     init_db(app)
-
     init_routes(app)
 
     return app
