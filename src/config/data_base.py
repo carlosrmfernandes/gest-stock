@@ -12,21 +12,24 @@ def init_db(app):
     2. MySQL - Precisa subir o Docker com docker-compose up
     """
     
-    # ========== OPÇÃO 1: SQLite (Sem Docker) ==========
-    # Banco de dados local, arquivo criado na pasta do projeto
-    basedir = os.path.abspath(os.path.dirname(__file__))
-    db_path = os.path.join(basedir, '..', '..', 'market_management.db')
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
-    
-    # ========== OPÇÃO 2: MySQL (Com Docker) ==========
-    # Descomente a linha abaixo e comente a linha do SQLite acima
-    # Depois rode: docker-compose up
-    # app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:root@mysql57:3306/market_management'
+    # Prioriza a URI vinda do ambiente (Docker/local).
+    database_uri = os.getenv('SQLALCHEMY_DATABASE_URI')
+
+    if not database_uri:
+        # Fallback local para desenvolvimento sem Docker.
+        basedir = os.path.abspath(os.path.dirname(__file__))
+        db_path = os.path.join(basedir, '..', '..', 'market_management.db')
+        database_uri = f'sqlite:///{db_path}'
+
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
     
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.init_app(app)
     
     # Cria as tabelas automaticamente
     with app.app_context():
+        # Garante o registro dos modelos antes da criação das tabelas.
+        from src.Infrastructure.Model.user import User
+        
         db.create_all()
 

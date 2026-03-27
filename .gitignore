@@ -1,5 +1,6 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
+**/__pycache__/
 *.py[cod]
 *$py.class
 
@@ -10,6 +11,9 @@ env/
 
 # SQLite database
 *.db
+
+# Docker MySQL local volume data
+.db/
 
 # IDE
 .vscode/

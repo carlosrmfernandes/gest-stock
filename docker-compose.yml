@@ -2,6 +2,7 @@ version: '3'
 services:
   mysql57:
     image: mysql:8.0.29
+    command: --default-authentication-plugin=mysql_native_password
     restart: unless-stopped
     container_name: db
     ports:
@@ -10,6 +11,11 @@ services:
       MYSQL_ROOT_USER: root
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: market_management
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
     volumes:
       - .db:/var/lib/mysql
   web:
@@ -18,8 +24,14 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5000:5000"
+    depends_on:
+      mysql57:
+        condition: service_healthy
     volumes:
       - .:/src
+    env_file:
+      - .env
     environment:
       FLASK_APP: run.py
       FLASK_ENV: development
+      SQLALCHEMY_DATABASE_URI: mysql+mysqlconnector://root:root@mysql57:3306/market_management

@@ -1,0 +1,9 @@
+.git
+.gitignore
+.env
+.venv
+__pycache__/
+**/__pycache__/
+*.pyc
+.db/
+market_management.db
