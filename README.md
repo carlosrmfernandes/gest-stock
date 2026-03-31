@@ -1,5 +1,11 @@
 # 📦 Gestão de Estoque para Mini Mercados
 
+## 👥 Integrantes
+- Anderson Alberissi 2403321
+- Jullya Nigro 2402577
+- Melissa Moura 2403008
+- Humberto Lisboa 2402662
+
 ## 📌 Objetivo
 Desenvolver um sistema para gestão de estoque e vendas de mini mercados, garantindo segurança, controle de acesso e gestão eficiente de produtos e vendas.
 
