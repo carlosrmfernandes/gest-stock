@@ -1,4 +1,5 @@
 import os
+from sqlalchemy import and_
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
