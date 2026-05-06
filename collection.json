@@ -1,0 +1,520 @@
+{
+  "info": {
+    "name": "Gest-Stock API",
+    "_postman_id": "c3d2f3f0-gest-stock-api",
+    "description": "Collection para testar todas as rotas registradas em src/routes.py. Observacoes: GET /products le JSON no body para receber user; POST /editarProduto esta registrado em routes.py, mas o ProductController atual nao implementa editar_product.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000"
+    },
+    {
+      "key": "user_nome",
+      "value": "Mini Mercado X"
+    },
+    {
+      "key": "cnpj",
+      "value": "12345678000199"
+    },
+    {
+      "key": "email",
+      "value": "mercado@email.com"
+    },
+    {
+      "key": "celular",
+      "value": "5511999999999"
+    },
+    {
+      "key": "senha",
+      "value": "123456"
+    },
+    {
+      "key": "activation_code",
+      "value": ""
+    },
+    {
+      "key": "access_token",
+      "value": ""
+    },
+    {
+      "key": "user_id",
+      "value": "1"
+    },
+    {
+      "key": "product_nome",
+      "value": "Arroz 5kg"
+    },
+    {
+      "key": "product_novo_nome",
+      "value": "Arroz Integral 5kg"
+    },
+    {
+      "key": "product_preco",
+      "value": "25.9"
+    },
+    {
+      "key": "product_novo_preco",
+      "value": "29.9"
+    },
+    {
+      "key": "product_qtd",
+      "value": "10"
+    },
+    {
+      "key": "product_nova_qtd",
+      "value": "15"
+    },
+    {
+      "key": "product_status",
+      "value": "true"
+    },
+    {
+      "key": "product_novo_status",
+      "value": "true"
+    },
+    {
+      "key": "product_image",
+      "value": "https://example.com/arroz-5kg.png"
+    },
+    {
+      "key": "product_nova_image",
+      "value": "https://example.com/arroz-integral-5kg.png"
+    }
+  ],
+  "item": [
+    {
+      "name": "00 - Health",
+      "item": [
+        {
+          "name": "GET / - Server running",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Rota de health check raiz. Nao recebe parametros.",
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api - API OK",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Rota de status da API. Nao recebe parametros.",
+            "url": {
+              "raw": "{{base_url}}/api",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "01 - Usuarios",
+      "item": [
+        {
+          "name": "POST /user - Cadastrar usuario",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  const user = data['usuarios cadastrados'] || {};",
+                  "  if (user.id !== undefined && user.id !== null) {",
+                  "    pm.collectionVariables.set('user_id', String(user.id));",
+                  "  }",
+                  "  if (user.codigoTwilio) {",
+                  "    pm.collectionVariables.set('activation_code', user.codigoTwilio);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Cria um usuario. Body obrigatorio: nome, cnpj, email, celular e senha. O controller valida cnpj com pelo menos 14 caracteres e celular com pelo menos 11 caracteres. Se o envio Twilio falhar, a rota pode retornar 502.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"{{user_nome}}\",\n  \"cnpj\": \"{{cnpj}}\",\n  \"email\": \"{{email}}\",\n  \"celular\": \"{{celular}}\",\n  \"senha\": \"{{senha}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/user",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /ativarUsuario - Ativar usuario",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Ativa o usuario por email e codigo de ativacao. Body obrigatorio: email e codigoAtivacao. A request anterior tenta salvar codigoAtivacao em {{activation_code}} quando o cadastro retorna 200.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"codigoAtivacao\": \"{{activation_code}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/ativarUsuario",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "ativarUsuario"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /login - Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  if (data.access_token) {",
+                  "    pm.collectionVariables.set('access_token', data.access_token);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Faz login. Body obrigatorio: email e senha. Quando retorna 200, salva access_token para usar em GET /users.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"senha\": \"{{senha}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /users - Listar usuarios",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "description": "Lista usuarios. Header obrigatorio: Authorization: Bearer {{access_token}}. O token e salvo pela request POST /login.",
+            "url": {
+              "raw": "{{base_url}}/users",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /testarNumero - Testar WhatsApp",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Dispara mensagem de teste via Twilio para o numero fixo definido no controller. Nao recebe parametros. Pode retornar 500 se a integracao Twilio nao estiver configurada.",
+            "url": {
+              "raw": "{{base_url}}/testarNumero",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "testarNumero"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Produtos",
+      "item": [
+        {
+          "name": "POST /product - Cadastrar produto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Cria um produto. Body obrigatorio pelo controller: nome, preco, qtd, status, image e user. Observacao do codigo atual: ProductController chama register_product com keyword User, mas ProductUseCase espera user; isso pode retornar 502 ate ser ajustado.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"{{product_nome}}\",\n  \"preco\": {{product_preco}},\n  \"qtd\": {{product_qtd}},\n  \"status\": {{product_status}},\n  \"image\": \"{{product_image}}\",\n  \"user\": {{user_id}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/product",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "product"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /products/{user_id} - Listar produtos do usuario",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Lista produtos filtrando pelo usuario. Formato principal: GET /products/{{user_id}}. Tambem aceita GET /products?user={{user_id}}.",
+            "url": {
+              "raw": "{{base_url}}/products/{{user_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "products",
+                "{{user_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /buscarProduto - Buscar produto por nome",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  if (data.id !== undefined && data.id !== null) {",
+                  "    pm.collectionVariables.set('product_id', String(data.id));",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Busca um produto pelo nome e usuario. Body obrigatorio: nome e user.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"{{product_nome}}\",\n  \"user\": {{user_id}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/buscarProduto",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "buscarProduto"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /ativarProduto - Ativar produto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Ativa um produto pelo nome e usuario. Body obrigatorio: nome e user.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"{{product_nome}}\",\n  \"user\": {{user_id}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/ativarProduto",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "ativarProduto"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /desativarProduto - Desativar produto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Desativa um produto pelo nome e usuario. Body obrigatorio: nome e user.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"{{product_nome}}\",\n  \"user\": {{user_id}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/desativarProduto",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "desativarProduto"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /editarProduto - Editar produto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Rota registrada em src/routes.py, mas o ProductController atual nao possui editar_product. Body inferido pelo ProductUseCase.editar_product: nome, novo_nome, novo_preco, nova_qtd, novo_status, nova_image e user.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"{{product_nome}}\",\n  \"novo_nome\": \"{{product_novo_nome}}\",\n  \"novo_preco\": {{product_novo_preco}},\n  \"nova_qtd\": {{product_nova_qtd}},\n  \"novo_status\": {{product_novo_status}},\n  \"nova_image\": \"{{product_nova_image}}\",\n  \"user\": {{user_id}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/editarProduto",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "editarProduto"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

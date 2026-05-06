@@ -1,11 +1,9 @@
-version: '3'
 services:
   mysql57:
     image: mysql:8.0.29
     restart: unless-stopped
-    container_name: db
     ports:
-      - "127.0.0.1:3306:3306"
+      - "127.0.0.1:3307:3306"
     environment:
       MYSQL_ROOT_USER: root
       MYSQL_ROOT_PASSWORD: root
@@ -23,3 +21,5 @@ services:
     environment:
       FLASK_APP: run.py
       FLASK_ENV: development
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN}
