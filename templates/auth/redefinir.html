@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h3 class="text-center mb-4" id="titulo-tela">Recuperar Senha</h3>
+                <div id="redefinir-alert" class="alert d-none"></div>
+                
+                <form id="solicitarForm">
+                    <p class="text-muted small mb-3">Insira seu e-mail cadastrado. Enviaremos um código de verificação via SMS para o seu número vinculado.</p>
+                    <div class="mb-3">
+                        <label>E-mail da Conta</label>
+                        <input type="email" id="email-solicitacao" class="form-control" required placeholder="exemplo@email.com">
+                    </div>
+                    <button type="submit" id="btn-solicitar" class="btn btn-primary w-100">Enviar Código de Recuperação</button>
+                </form>
+                
+                <form id="confirmarForm" class="d-none">
+                    <p class="text-muted small mb-3">Insira o código enviado por SMS e defina sua nova senha de acesso.</p>
+                    <div class="mb-3">
+                        <label>Código de Verificação (SMS)</label>
+                        <input type="text" id="codigo-sms" class="form-control text-center fs-5 tracking-widest" required placeholder="000000" maxlength="6">
+                    </div>
+                    <div class="mb-3">
+                        <label>Nova Senha</label>
+                        <div class="input-group">
+                            <input type="password" id="nova-senha" class="form-control" required placeholder="No mínimo 6 caracteres">
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('nova-senha', this)" tabindex="-1">👁️</button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label>Confirme a Nova Senha</label>
+                        <div class="input-group">
+                            <input type="password" id="confirma-senha" class="form-control" required placeholder="Repita a nova senha">
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirma-senha', this)" tabindex="-1">👁️</button>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">Alterar Senha</button>
+                </form>
+                
+                <div class="text-center mt-3">
+                    <a href="/" class="text-muted small">Voltar para o Login</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function togglePassword(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (input.type === 'password') {
+        input.type = 'text';
+        btn.textContent = '🙈';
+    } else {
+        input.type = 'password';
+        btn.textContent = '👁️';
+    }
+}
+
+let emailGlobal = "";
+
+document.getElementById('solicitarForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email-solicitacao').value;
+    const btn = document.getElementById('btn-solicitar');
+    const alertBox = document.getElementById('redefinir-alert');
+    
+    btn.disabled = true;
+    btn.textContent = "Enviando...";
+    alertBox.classList.add('d-none');
+
+    try {
+        const response = await fetch('/api/redefinir/solicitar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+        
+        const data = await response.json();
+
+        if (response.ok) {
+            emailGlobal = email;
+            alertBox.className = 'alert alert-success';
+            alertBox.textContent = data.mensagem || 'Código enviado com sucesso!';
+            alertBox.classList.remove('d-none');
+            
+            document.getElementById('solicitarForm').classList.add('d-none');
+            document.getElementById('confirmarForm').classList.remove('d-none');
+            document.getElementById('titulo-tela').textContent = "Definir Nova Senha";
+        } else {
+            alertBox.className = 'alert alert-danger';
+            alertBox.textContent = data.erro || 'Erro ao processar solicitação.';
+            alertBox.classList.remove('d-none');
+            btn.disabled = false;
+            btn.textContent = "Enviar Código de Recuperação";
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        alertBox.className = 'alert alert-danger';
+        alertBox.textContent = 'Erro de conexão com o servidor.';
+        alertBox.classList.remove('d-none');
+        btn.disabled = false;
+        btn.textContent = "Enviar Código de Recuperação";
+    }
+});
+
+document.getElementById('confirmarForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const codigo = document.getElementById('codigo-sms').value;
+    const novaSenha = document.getElementById('nova-senha').value;
+    const confirmaSenha = document.getElementById('confirma-senha').value;
+    const alertBox = document.getElementById('redefinir-alert');
+
+    if (novaSenha !== confirmaSenha) {
+        alertBox.className = 'alert alert-danger';
+        alertBox.textContent = 'As senhas informadas não coincidem!';
+        alertBox.classList.remove('d-none');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/redefinir/confirmar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                email: emailGlobal, 
+                codigo_verificacao: codigo, 
+                nova_senha: novaSenha 
+            })
+        });
+        
+        const data = await response.json();
+
+        if (response.ok) {
+            alertBox.className = 'alert alert-success';
+            alertBox.textContent = 'Senha redefinida com sucesso! Redirecionando para o login...';
+            alertBox.classList.remove('d-none');
+            
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 2000);
+        } else {
+            alertBox.className = 'alert alert-danger';
+            alertBox.textContent = data.erro || 'Erro ao alterar a senha.';
+            alertBox.classList.remove('d-none');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+    }
+});
+</script>
+{% endblock %}

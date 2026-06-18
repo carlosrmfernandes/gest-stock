@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block content %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 rounded">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/dashboard">Mini Mercado</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link" href="/dashboard">Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" href="/produtos">Produtos</a></li>
+                <li class="nav-item"><a class="nav-link active" href="/vendas">Vendas</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="row">
+    <div class="col-md-5 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Adicionar ao Carrinho</h5>
+            </div>
+            <div class="card-body">
+                <div id="venda-alert" class="alert d-none"></div>
+                <form id="formAddProduto">
+                    <div class="mb-3">
+                        <label>Buscar Produto</label>
+                        <select id="select_produto" class="form-select" required>
+                            <option value="">Carregando produtos...</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label>Quantidade / Peso</label>
+                        <input type="number" step="0.01" id="quantidade" class="form-control" value="1" min="0.01" required>
+                    </div>
+                    <div class="d-grid">
+                        <button type="button" class="btn btn-outline-primary" onclick="adicionarItem()">
+                            Incluir Item
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-7 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Carrinho Atual</h5>
+                <button class="btn btn-sm btn-outline-danger" onclick="limparCarrinho()">Limpar</button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light sticky-top">
+                            <tr>
+                                <th>Produto</th>
+                                <th>Qtd</th>
+                                <th>Preço Un.</th>
+                                <th>Subtotal</th>
+                                <th>Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-carrinho">
+                            <tr><td colspan="5" class="text-center text-muted py-4">O carrinho está vazio</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer bg-light p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Total: <span id="total-venda" class="text-success">R$ 0,00</span></h4>
+                    <button class="btn btn-success btn-lg" onclick="finalizarVenda()" id="btnFinalizar" disabled>
+                        Finalizar Venda
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const token = localStorage.getItem('token');
+    if (!token) window.location.href = '/';
+
+    const formatarBRL = (valor) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
+
+    let produtosDisponiveis = [];
+    let carrinho = [];
+
+    // 1. Carregar produtos ativos para o Select
+    async function carregarProdutosParaVenda() {
+        const response = await fetch('/api/produtos', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+            const produtos = await response.json();
+            produtosDisponiveis = produtos.filter(p => p.status === 'Ativo' && p.estoque_quantidade > 0);
+            
+            const select = document.getElementById('select_produto');
+            select.innerHTML = '<option value="">Selecione um produto...</option>';
+            
+            produtosDisponiveis.forEach(p => {
+                select.innerHTML += `<option value="${p.id}">
+                    ${p.nome} - ${formatarBRL(p.preco)} (Estoque: ${p.estoque_quantidade})
+                </option>`;
+            });
+        }
+    }
+
+    // 2. Adicionar item ao Carrinho
+    function adicionarItem() {
+        const select = document.getElementById('select_produto');
+        const produtoId = parseInt(select.value);
+        const quantidade = parseFloat(document.getElementById('quantidade').value);
+        const alertBox = document.getElementById('venda-alert');
+        
+        if (!produtoId || !quantidade || quantidade <= 0) return;
+
+        const produto = produtosDisponiveis.find(p => p.id === produtoId);
+        
+        // Validação de estoque no Front-end (RN2)
+        const qtdNoCarrinho = carrinho.filter(i => i.produto_id === produtoId).reduce((acc, curr) => acc + curr.quantidade, 0);
+        if ((qtdNoCarrinho + quantidade) > produto.estoque_quantidade) {
+            alertBox.className = 'alert alert-warning';
+            alertBox.textContent = `Estoque insuficiente. Restam apenas ${produto.estoque_quantidade} ${produto.nome}(s).`;
+            alertBox.classList.remove('d-none');
+            setTimeout(() => alertBox.classList.add('d-none'), 3000);
+            return;
+        }
+
+        // Verifica se já existe no carrinho para somar a quantidade
+        const itemExistente = carrinho.find(i => i.produto_id === produtoId);
+        if (itemExistente) {
+            itemExistente.quantidade += quantidade;
+            itemExistente.subtotal = itemExistente.quantidade * produto.preco;
+        } else {
+            carrinho.push({
+                produto_id: produto.id,
+                nome: produto.nome,
+                quantidade: quantidade,
+                preco: produto.preco,
+                subtotal: quantidade * produto.preco
+            });
+        }
+
+        // Reseta input
+        document.getElementById('quantidade').value = 1;
+        select.value = "";
+        
+        renderizarCarrinho();
+    }
+
+    // 3. Remover item do Carrinho
+    function removerItem(index) {
+        carrinho.splice(index, 1);
+        renderizarCarrinho();
+    }
+
+    // 4. Limpar todo o Carrinho
+    function limparCarrinho() {
+        carrinho = [];
+        renderizarCarrinho();
+    }
+
+    // 5. Renderizar tabela do carrinho e atualizar totais
+    function renderizarCarrinho() {
+        const tbody = document.getElementById('tabela-carrinho');
+        const btnFinalizar = document.getElementById('btnFinalizar');
+        const totalDisplay = document.getElementById('total-venda');
+        
+        tbody.innerHTML = '';
+        let valorTotal = 0;
+
+        if (carrinho.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">O carrinho está vazio</td></tr>';
+            totalDisplay.textContent = 'R$ 0,00';
+            btnFinalizar.disabled = true;
+            return;
+        }
+
+        carrinho.forEach((item, index) => {
+            valorTotal += item.subtotal;
+            tbody.innerHTML += `
+                <tr>
+                    <td>${item.nome}</td>
+                    <td>${item.quantidade}</td>
+                    <td>${formatarBRL(item.preco)}</td>
+                    <td class="fw-bold">${formatarBRL(item.subtotal)}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-danger" onclick="removerItem(${index})">X</button>
+                    </td>
+                </tr>
+            `;
+        });
+
+        totalDisplay.textContent = formatarBRL(valorTotal);
+        btnFinalizar.disabled = false;
+    }
+
+    // 6. Finalizar Venda e enviar para a API
+    async function finalizarVenda() {
+        const btnFinalizar = document.getElementById('btnFinalizar');
+        btnFinalizar.disabled = true;
+        btnFinalizar.textContent = 'Processando...';
+
+        const payload = {
+            carrinho: carrinho.map(item => ({
+                produto_id: item.produto_id,
+                quantidade: item.quantidade
+            }))
+        };
+
+        try {
+            const response = await fetch('/api/vendas', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+            
+            if (response.status === 201) {
+                alert('Venda registrada com sucesso!');
+                limparCarrinho();
+                carregarProdutosParaVenda();
+            } else {
+                alert(`Erro: ${data.erro}`);
+            }
+        } catch (error) {
+            alert('Erro ao processar a venda.');
+        } finally {
+            btnFinalizar.textContent = 'Finalizar Venda';
+            renderizarCarrinho();
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', carregarProdutosParaVenda);
+</script>
+{% endblock %}

@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block content %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 rounded">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/dashboard">Mini Mercado</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link" href="/dashboard">Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" href="/produtos">Produtos</a></li>
+                <li class="nav-item"><a class="nav-link" href="/vendas">Vendas</a></li>
+            </ul>
+            <ul class="navbar-nav">
+                <li class="nav-item"><a class="nav-link active" href="/perfil">Perfil</a></li>
+                <li class="nav-item"><a class="nav-link text-danger" href="#" onclick="logout()">Sair</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container px-0">
+    <div class="card bg-dark text-white shadow-sm mb-4 border-0 rounded-3">
+        <div class="card-body p-4 d-flex flex-column flex-md-row align-items-center justify-content-between">
+            <div class="d-flex align-items-center flex-column flex-md-row text-center text-md-start">
+                <div class="rounded-circle bg-primary bg-gradient d-flex align-items-center justify-content-center text-white fw-bold shadow mb-3 mb-md-0" 
+                     style="width: 90px; height: 90px; font-size: 36px; min-width: 90px; letter-spacing: 1px;" 
+                     id="avatar-iniciais">
+                    ...
+                </div>
+                <div class="ms-md-4">
+                    <h2 class="mb-1 fw-bold" id="lbl-nome">Carregando...</h2>
+                    <p class="mb-0 text-white-50 fs-6">
+                        <span class="badge bg-secondary me-2">Vendedor Ativo</span>
+                        ID da Conta: <span class="fw-bold text-white" id="lbl-id">...</span>
+                    </p>
+                </div>
+            </div>
+            <div class="mt-3 mt-md-0">
+                <a href="/perfil/atualizar" class="btn btn-light fw-bold px-4 py-2 shadow-sm border-0 hover-zoom">
+                    Editar Dados
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-3">
+        <div class="card-header bg-white py-3 border-bottom-0">
+            <h5 class="mb-0 fw-bold text-dark">Informações da Conta</h5>
+        </div>
+        <div class="card-body pt-1 pb-4">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="p-3 bg-light rounded-3 h-100 border-start border-primary border-3">
+                        <small class="text-muted d-block text-uppercase fw-bold mb-1" style="font-size: 11px; letter-spacing: 0.5px;">E-mail de Acesso</small>
+                        <span class="fs-5 fw-semibold text-dark text-break" id="lbl-email">...</span>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="p-3 bg-light rounded-3 h-100 border-start border-success border-3">
+                        <small class="text-muted d-block text-uppercase fw-bold mb-1" style="font-size: 11px; letter-spacing: 0.5px;">Telefone / WhatsApp</small>
+                        <span class="fs-5 fw-semibold text-dark" id="lbl-celular">...</span>
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <div class="p-3 bg-light rounded-3 border-start border-info border-3">
+                        <small class="text-muted d-block text-uppercase fw-bold mb-1" style="font-size: 11px; letter-spacing: 0.5px;">CNPJ do Estabelecimento</small>
+                        <span class="fs-5 fw-semibold text-dark" id="lbl-cnpj">...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const token = localStorage.getItem('token');
+    if (!token) window.location.href = '/';
+
+    function logout() {
+        localStorage.removeItem('token');
+        window.location.href = '/';
+    }
+
+    function formatPhoneNumber(v) {
+        if (!v) return "";
+        v = String(v).replace(/\D/g, ''); 
+        if (v.length > 13) v = v.slice(0, 13);
+        let res = '';
+        if (v.length > 0) res += '+' + v.substring(0, 2);
+        if (v.length > 2) res += ' ' + v.substring(2, 4);
+        if (v.length > 4) res += ' ' + v.substring(4, 9);
+        if (v.length > 9) res += '-' + v.substring(9, 13);
+        return res;
+    }
+
+    function formatCNPJ(v) {
+        if (!v) return "";
+        v = String(v).replace(/\D/g, '');
+        let match = v.match(/(\d{0,2})(\d{0,3})(\d{0,3})(\d{0,4})(\d{0,2})/);
+        if (!match) return v;
+        return !match[2] ? match[1] : match[1] + '.' + match[2] + (match[3] ? '.' : '') + match[3] + (match[4] ? '/' : '') + match[4] + (match[5] ? '-' + match[5] : '');
+    }
+
+    async function carregarPerfil() {
+        try {
+            const response = await fetch('/api/vendedor/dados', {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (response.status === 401 || response.status === 403) {
+                logout();
+                return;
+            }
+
+            const data = await response.json();
+            if (response.ok) {
+                document.getElementById('lbl-nome').textContent = data.name;
+                document.getElementById('lbl-id').textContent = data.id;
+                document.getElementById('lbl-email').textContent = data.email;
+                document.getElementById('lbl-celular').textContent = formatPhoneNumber(data.celular);
+                document.getElementById('lbl-cnpj').textContent = formatCNPJ(data.cnpj);
+                
+                if (data.name) {
+                    document.getElementById('avatar-iniciais').textContent = data.name.substring(0, 2).toUpperCase();
+                }
+            }
+        } catch (error) {
+            console.error("Erro ao carregar dados do perfil:", error);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', carregarPerfil);
+</script>
+{% endblock %}

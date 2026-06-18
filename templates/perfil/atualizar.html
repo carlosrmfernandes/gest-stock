@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white py-3 d-flex align-items-center">
+                    <a href="/perfil" class="btn btn-outline-secondary btn-sm me-3">⬅️ Voltar</a>
+                    <h5 class="mb-0 fw-bold">Atualizar Dados</h5>
+                </div>
+                <div class="card-body">
+                    <div id="alert-box" class="alert d-none"></div>
+
+                    <form id="formAtualizar">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Nome</label>
+                            <input type="text" id="upd-nome" class="form-control" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">E-mail</label>
+                                <input type="email" id="upd-email" class="form-control" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Celular</label>
+                                <input type="text" id="upd-celular" class="form-control" placeholder="+55 11 90000-0000" maxlength="17" required>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+                        <h6 class="text-secondary mb-3">Alterar Senha <small>(Opcional)</small></h6>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Nova Senha</label>
+                                <div class="input-group">
+                                    <input type="password" id="upd-senha" class="form-control" placeholder="Deixe em branco para não alterar">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('upd-senha', this)" tabindex="-1">👁️</button>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Confirmar Senha</label>
+                                <div class="input-group">
+                                    <input type="password" id="upd-senha-confirm" class="form-control">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('upd-senha-confirm', this)" tabindex="-1">👁️</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-end mt-3">
+                            <button type="submit" class="btn btn-success fw-bold px-4">Salvar Alterações</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const token = localStorage.getItem('token');
+    if (!token) window.location.href = '/';
+    let userId = null;
+
+    function togglePassword(inputId, btn) {
+        const input = document.getElementById(inputId);
+        if (input.type === 'password') {
+            input.type = 'text';
+            btn.textContent = '🙈';
+        } else {
+            input.type = 'password';
+            btn.textContent = '👁️';
+        }
+    }
+
+    // Função para formatar o celular quando vier do banco
+    function formatPhoneNumber(v) {
+        if (!v) return "";
+        v = v.replace(/\D/g, ''); 
+        if (v.length > 13) v = v.slice(0, 13);
+        let res = '';
+        if (v.length > 0) res += '+' + v.substring(0, 2);
+        if (v.length > 2) res += ' ' + v.substring(2, 4);
+        if (v.length > 4) res += ' ' + v.substring(4, 9);
+        if (v.length > 9) res += '-' + v.substring(9, 13);
+        return res;
+    }
+
+    // Aplica a máscara durante a digitação
+    document.getElementById('upd-celular').addEventListener('input', function (e) {
+        e.target.value = formatPhoneNumber(e.target.value);
+    });
+
+    async function preencherFormulario() {
+        const response = await fetch('/api/vendedor/dados', {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            userId = data.id;
+            document.getElementById('upd-nome').value = data.name;
+            document.getElementById('upd-email').value = data.email;
+            document.getElementById('upd-celular').value = formatPhoneNumber(data.celular);
+        }
+    }
+
+    document.getElementById('formAtualizar').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const alertBox = document.getElementById('alert-box');
+        alertBox.classList.add('d-none');
+
+        const senha = document.getElementById('upd-senha').value;
+        const senhaConfirm = document.getElementById('upd-senha-confirm').value;
+
+        if (senha !== senhaConfirm) {
+            alertBox.className = 'alert alert-danger';
+            alertBox.textContent = 'As senhas não coincidem!';
+            alertBox.classList.remove('d-none');
+            return;
+        }
+
+        const payload = {
+            name: document.getElementById('upd-nome').value,
+            email: document.getElementById('upd-email').value,
+            celular: document.getElementById('upd-celular').value.replace(/[^\d+]/g, '')
+        };
+
+        if (senha.trim() !== "") {
+            payload.password = senha;
+        }
+
+        try {
+            const res = await fetch(`/atualizar/id=${userId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                alertBox.className = 'alert alert-success';
+                alertBox.textContent = '✅ Dados atualizados com sucesso!';
+                alertBox.classList.remove('d-none');
+                document.getElementById('upd-senha').value = '';
+                document.getElementById('upd-senha-confirm').value = '';
+            } else {
+                alertBox.className = 'alert alert-danger';
+                alertBox.textContent = `❌ ${data.erro}`;
+                alertBox.classList.remove('d-none');
+            }
+        } catch (error) {
+            console.error("Erro na atualização:", error);
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', preencherFormulario);
+</script>
+{% endblock %}

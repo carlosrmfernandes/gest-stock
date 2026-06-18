@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                
+                <div id="step-cadastro">
+                    <h3 class="text-center mb-4">Novo Vendedor</h3>
+                    <div id="cad-alert" class="alert d-none"></div>
+                    <form id="cadastroForm">
+                        <div class="mb-3">
+                            <label>Nome da Loja/Vendedor</label>
+                            <input type="text" id="name" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>CNPJ</label>
+                            <input type="text" id="cnpj" class="form-control" placeholder="00.000.000/0000-00" maxlength="18" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>E-mail</label>
+                            <input type="email" id="email" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Celular (WhatsApp com DDD)</label>
+                            <input type="text" id="celular" class="form-control" placeholder="+55 11 90000-0000" maxlength="17" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Senha</label>
+                            <div class="input-group">
+                                <input type="password" id="password" class="form-control" required>
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password', this)" tabindex="-1">👁️</button>
+                            </div>
+                        </div>
+                        <button type="submit" id="btn-cadastrar" class="btn btn-success w-100">Criar Conta</button>
+                    </form>
+                    <div class="text-center mt-3">
+                        <a href="/">Já possui conta? Faça Login</a>
+                    </div>
+                </div>
+
+                <div id="step-ativacao" class="d-none text-center">
+                    <h4 class="mb-3">Ativação de Conta</h4>
+                    <p class="text-muted">Enviamos um código de 4 dígitos para o seu WhatsApp.</p>
+                    <div id="ativacao-alert" class="alert d-none"></div>
+                    <form id="ativacaoForm">
+                        <input type="hidden" id="email_confirmacao">
+                        <div class="mb-3">
+                            <input type="text" id="codigo" class="form-control text-center fs-3" maxlength="4" placeholder="0000" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Ativar Conta</button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+
+    function togglePassword(inputId, btn) {
+        const input = document.getElementById(inputId);
+        if (input.type === 'password') {
+            input.type = 'text';
+            btn.textContent = '🙈';
+        } else {
+            input.type = 'password';
+            btn.textContent = '👁️';
+        }
+    }
+
+    document.getElementById('cnpj').addEventListener('input', function (e) {
+        let x = e.target.value.replace(/\D/g, '').match(/(\d{0,2})(\d{0,3})(\d{0,3})(\d{0,4})(\d{0,2})/);
+        e.target.value = !x[2] ? x[1] : x[1] + '.' + x[2] + (x[3] ? '.' : '') + x[3] + (x[4] ? '/' : '') + x[4] + (x[5] ? '-' + x[5] : '');
+    });
+
+    document.getElementById('celular').addEventListener('input', function (e) {
+        let v = e.target.value.replace(/\D/g, '');
+        if (v.length > 13) v = v.slice(0, 13);
+        let res = '';
+        if (v.length > 0) res += '+' + v.substring(0, 2);
+        if (v.length > 2) res += ' ' + v.substring(2, 4);
+        if (v.length > 4) res += ' ' + v.substring(4, 9);
+        if (v.length > 9) res += '-' + v.substring(9, 13);
+        e.target.value = res;
+    });
+
+    // Lógica de Cadastro
+    document.getElementById('cadastroForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('btn-cadastrar');
+        btn.disabled = true;
+        btn.textContent = 'Enviando...';
+
+        const payload = {
+            name: document.getElementById('name').value,
+            cnpj: document.getElementById('cnpj').value.replace(/\D/g, ''),
+            email: document.getElementById('email').value,
+            celular: document.getElementById('celular').value.replace(/[^\d+]/g, ''),
+            password: document.getElementById('password').value
+        };
+
+        const response = await fetch('/criar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        
+        const data = await response.json();
+        const alertBox = document.getElementById('cad-alert');
+
+        if (response.status === 201) {
+            document.getElementById('email_confirmacao').value = payload.email;
+            document.getElementById('step-cadastro').classList.add('d-none');
+            document.getElementById('step-ativacao').classList.remove('d-none');
+        } else {
+            alertBox.className = 'alert alert-danger';
+            alertBox.textContent = data.erro;
+            alertBox.classList.remove('d-none');
+            btn.disabled = false;
+            btn.textContent = 'Criar Conta';
+        }
+    });
+
+    // Lógica de Ativação
+    document.getElementById('ativacaoForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('email_confirmacao').value;
+        const codigo_ativacao = document.getElementById('codigo').value;
+        
+        const response = await fetch('/ativar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, codigo_ativacao })
+        });
+
+        const data = await response.json();
+        const alertBox = document.getElementById('ativacao-alert');
+
+        if (response.status === 200) {
+            localStorage.setItem('token', data.token);
+            alertBox.className = 'alert alert-success';
+            alertBox.textContent = 'Conta ativada! Redirecionando para o Dashboard...';
+            alertBox.classList.remove('d-none');
+            setTimeout(() => { window.location.href = '/dashboard'; }, 1500);
+        } else {
+            alertBox.className = 'alert alert-danger';
+            alertBox.textContent = data.erro;
+            alertBox.classList.remove('d-none');
+        }
+    });
+</script>
+{% endblock %}

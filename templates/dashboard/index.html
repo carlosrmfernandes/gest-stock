@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block content %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 rounded">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/dashboard">Mini Mercado</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link active" href="/dashboard">Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" href="/produtos">Produtos</a></li>
+                <li class="nav-item"><a class="nav-link" href="/vendas">Vendas</a></li>
+            </ul>
+            <ul class="navbar-nav">
+                <li class="nav-item"><a class="nav-link" href="/perfil">Perfil</a></li>
+                <li class="nav-item"><a class="nav-link text-danger" href="#" onclick="logout()">Sair</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="card-title">Produtos Ativos</h6>
+                <h2 id="ind-produtos">...</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="card-title">Valor em Estoque</h6>
+                <h2 id="ind-estoque">...</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="card-title">Total de Vendas</h6>
+                <h2 id="ind-vendas">...</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning shadow-sm h-100">
+            <div class="card-body">
+                <h6 class="card-title">Itens Vendidos</h6>
+                <h2 id="ind-itens">...</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">Últimas Vendas Realizadas</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID da Venda</th>
+                        <th>Produto(s)</th>
+                        <th>Data/Hora</th>
+                        <th>Valor Total</th>
+                        <th class="text-center">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-vendas">
+                    <tr>
+                        <td colspan="5" class="text-center py-3">Carregando dados...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalDetalhesVenda" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title">Detalhes da Venda - #<span id="nf-id"></span></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3"><strong>Realizada em:</strong> <span id="nf-data"></span></p>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID Prod.</th>
+                                <th>Descrição (Nome)</th>
+                                <th class="text-center">Unidades</th>
+                                <th class="text-end">Valor Un.</th>
+                                <th class="text-end">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody id="nf-itens">
+                            </tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="4" class="text-end fs-6">Valor Total da Venda:</th>
+                                <th id="nf-total" class="text-end text-success fw-bold fs-6"></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const token = localStorage.getItem('token');
+    if (!token) window.location.href = '/';
+
+    let ultimasVendasGlobais = [];
+    const formatarBRL = (valor) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
+
+    function logout() {
+        localStorage.removeItem('token');
+        window.location.href = '/';
+    }
+
+    async function carregarDashboard() {
+        try {
+            const response = await fetch('/api/dashboard', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.status === 401 || response.status === 403) {
+                logout();
+                return;
+            }
+
+            const data = await response.json();
+
+            if (response.ok) {
+                ultimasVendasGlobais = data.ultimas_vendas;
+
+                document.getElementById('ind-produtos').textContent = data.total_produtos;
+                document.getElementById('ind-estoque').textContent = formatarBRL(data.valor_estoque);
+                document.getElementById('ind-vendas').textContent = formatarBRL(data.total_vendas_rs);
+                document.getElementById('ind-itens').textContent = data.total_itens_vendidos;
+
+                const tbody = document.getElementById('tabela-vendas');
+                tbody.innerHTML = '';
+
+                if (data.ultimas_vendas.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center">Nenhuma venda registrada ainda.</td></tr>';
+                } else {
+                    data.ultimas_vendas.forEach(venda => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>#${venda.id}</td>
+                            <td>${venda.produto_resumo}</td>
+                            <td>${venda.data_venda}</td>
+                            <td class="fw-bold text-success">${formatarBRL(venda.valor_total)}</td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-outline-primary" onclick="abrirDetalhesVenda(${venda.id})">🔍 Visualizar</button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+            }
+        } catch (error) {
+            console.error("Erro ao buscar dados do dashboard:", error);
+        }
+    }
+
+    function abrirDetalhesVenda(idVenda) {
+        const venda = ultimasVendasGlobais.find(v => v.id === idVenda);
+        if (!venda) return;
+
+        document.getElementById('nf-id').textContent = venda.id;
+        document.getElementById('nf-data').textContent = venda.data_venda;
+        document.getElementById('nf-total').textContent = formatarBRL(venda.valor_total);
+
+        const tbodyItens = document.getElementById('nf-itens');
+        tbodyItens.innerHTML = '';
+
+        venda.itens_detalhados.forEach(item => {
+            tbodyItens.innerHTML += `
+                <tr>
+                    <td>#${item.id_produto}</td>
+                    <td>${item.descricao}</td>
+                    <td class="text-center">${item.quantidade}</td>
+                    <td class="text-end">${formatarBRL(item.preco_unitario)}</td>
+                    <td class="text-end fw-bold">${formatarBRL(item.subtotal)}</td>
+                </tr>
+            `;
+        });
+
+        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('modalDetalhesVenda'));
+        modal.show();
+    }
+
+    document.addEventListener('DOMContentLoaded', carregarDashboard);
+</script>
+{% endblock %}

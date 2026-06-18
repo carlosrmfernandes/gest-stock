@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h3 class="text-center mb-4">Login Mini Mercado</h3>
+                <div id="login-alert" class="alert d-none"></div>
+                
+                <form id="loginForm">
+                    <div class="mb-3">
+                        <label>Email</label>
+                        <input type="email" id="email" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Senha</label>
+                        <div class="input-group">
+                            <input type="password" id="password" class="form-control" required>
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password', this)" tabindex="-1">👁️</button>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Entrar no Dashboard</button>
+                </form>
+                
+                <div class="text-center mt-3">
+                    <a href="/cadastro">Não possui conta? Cadastre-se</a>
+                </div>
+                <div class="text-center mt-2">
+                    <a href="/redefinir" class="text-muted small">Esqueci minha senha</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function togglePassword(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (input.type === 'password') {
+        input.type = 'text';
+        btn.textContent = '🙈';
+    } else {
+        input.type = 'password';
+        btn.textContent = '👁️';
+    }
+}
+
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const alertBox = document.getElementById('login-alert');
+
+    try {
+        const response = await fetch('/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        
+        const data = await response.json();
+
+        if (response.ok) {
+            console.log("1. Resposta completa do servidor no login:", data);
+            console.log("2. Tentando salvar o token:", data.token);
+            
+            localStorage.setItem('token', data.token);
+            
+            console.log("3. Token gravado com sucesso no LocalStorage:", localStorage.getItem('token'));
+            window.location.href = '/dashboard';
+        } else {
+            alertBox.className = 'alert alert-danger';
+            alertBox.textContent = data.erro || 'Erro ao realizar login.';
+            alertBox.classList.remove('d-none');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+    }
+});
+</script>
+{% endblock %}

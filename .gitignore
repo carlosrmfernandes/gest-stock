@@ -17,3 +17,9 @@ env/
 
 # OS
 .DS_Store
+
+.env
+__pycache__/
+
+static/uploads/*
+!app/static/uploads/.gitkeep
