@@ -12,8 +12,8 @@ O sistema **já está implementado**. Sua tarefa é **escrever os testes**.
 
 Você vai testar dois fluxos:
 
-1. **Cadastro e ativação de Seller** (mini mercado), incluindo o envio do código por WhatsApp/SMS
-2. **Cadastro de Produto**
+1. **Cadastro de Seller** (mini mercado) — validações, unicidade e geração do código de ativação
+2. **Envio do código por WhatsApp/SMS** — a integração com o provedor externo (Twilio)
 
 > ⚠️ **Não altere o código de produção** (`src/`). Se você acha que encontrou um bug,
 > **escreva um teste que prove o bug** e explique no docstring. Isso vale ponto extra.
@@ -55,18 +55,18 @@ src/
 │
 ├── Application/
 │   ├── Service/
-│   │   ├── seller_service.py            ★ create_seller / activate_seller
-│   │   ├── product_service.py           ★ create_product / list_products
-│   │   └── activation_code.py           generate_activation_code (usa random)
+│   │   ├── seller_service.py            ★ create_seller  ← FLUXO 1
+│   │   ├── product_service.py           (fora do escopo desta prova)
+│   │   └── activation_code.py           ★ generate_activation_code (usa random)
 │   └── Controllers/                     camada HTTP (traduz erro → status code)
 │
 └── Infrastructure/
     ├── Model/                           tabelas SQLAlchemy
     ├── Repository/                      ← MOCKE ISTO (acesso ao banco)
-    └── http/whats_app.py                ← MOCKE ISTO (provedor externo Twilio)
+    └── http/whats_app.py                ★ ← MOCKE ISTO (Twilio)  ← FLUXO 2
 ```
 
-★ = onde está a maior parte das regras de negócio que você deve testar.
+★ = o que entra na prova. O resto do código existe e funciona, mas não será avaliado.
 
 **Todos os serviços recebem suas dependências pelo construtor.** É assim que você injeta os mocks:
 
@@ -94,13 +94,13 @@ O arquivo [`tests/conftest.py`](tests/conftest.py) já traz:
 | Fixture | O que é |
 |---|---|
 | `seller_repository` | Mock do `SellerRepository` (banco vazio por padrão) |
-| `product_repository` | Mock do `ProductRepository` |
 | `notifier` | Mock do `ActivationNotifier` (envio de mensagem) |
 | `code_generator` | Gerador determinístico — sempre retorna `'1234'` |
 | `seller_payload` | Dicionário com um cadastro válido |
-| `inactive_seller` | Seller status `Inativo`, código `'1234'` |
-| `active_seller` | Seller status `Ativo` |
-| `product` | Produto de exemplo do seller 1 |
+| `active_seller` | Seller já cadastrado — útil para simular duplicidade |
+
+> As fixtures `product_repository`, `inactive_seller` e `product` também existem no
+> `conftest.py`, mas **não são necessárias** nesta prova.
 
 Você pode criar outras fixtures se precisar.
 
@@ -146,6 +146,9 @@ Você pode criar outras fixtures se precisar.
 | 1.15 | Conflito | A mensagem **não** foi enviada |
 | 1.16 | Provedor de mensagem falha | `NotificationError` sobe (use `side_effect`) |
 
+> 💡 Nos casos 1.6 a 1.10 use `@pytest.mark.parametrize` em vez de copiar e colar
+> o mesmo teste cinco vezes trocando só o campo inválido.
+
 ---
 
 # 📋 FLUXO 2 — Envio da mensagem (integração externa)
@@ -174,93 +177,6 @@ with patch('src.Infrastructure.http.whats_app.requests.post') as mock_post:
 | 2.5 | `ActivationNotifier` | Monta o texto da mensagem contendo o código e delega ao client |
 | 2.6 | `generate_activation_code` | Sempre devolve 4 caracteres numéricos (rode em laço) |
 | 2.7 | `generate_activation_code` | Com `random.randint` mockado retornando `7`, o código é `'0007'` |
-
----
-
-# 📋 FLUXO 3 — Ativação do Seller
-
-**Arquivo a criar:** `tests/test_seller_service_activate.py`
-**Método sob teste:** `SellerService.activate_seller(phone, code)`
-
-### Regras implementadas
-
-1. Celular e código são obrigatórios
-2. Celular não cadastrado → `NotFoundError`
-3. Seller já ativo → `BusinessRuleError`
-4. Código diferente do gerado → `ValidationError`
-5. Ao ativar: status vira `Ativo` e o `activation_code` é apagado
-6. O celular é normalizado antes da busca (`+55 (11) 99999-9999` vira `+5511999999999`)
-
-### ✅ Casos de teste obrigatórios
-
-| # | Caso | O que verificar |
-|---|---|---|
-| 3.1 | Código correto | Retorna domínio com `status == 'Ativo'` |
-| 3.2 | Código correto | `activation_code` do seller virou `None` |
-| 3.3 | Código correto | `repository.update` chamado uma vez |
-| 3.4 | Código errado | Levanta `ValidationError` e `update` **não** é chamado |
-| 3.5 | Celular inexistente | Levanta `NotFoundError` |
-| 3.6 | Seller já ativo | Levanta `BusinessRuleError` |
-| 3.7 | Celular ou código ausente | Levanta `ValidationError` |
-| 3.8 | Celular com máscara | `repository.find_by_phone` é chamado com o número **normalizado** |
-
----
-
-# 📋 FLUXO 4 — Cadastro de Produto
-
-**Arquivo a criar:** `tests/test_product_service.py`
-**Método sob teste:** `ProductService.create_product(seller_id, name, price, quantity, status, img)`
-
-### Regras implementadas
-
-1. Seller precisa existir → `NotFoundError`
-2. Seller precisa estar **`Ativo`** → `BusinessRuleError`
-3. Nome obrigatório, máximo 100 caracteres
-4. Preço numérico e **maior que zero**
-5. Quantidade inteira e **maior ou igual a zero**
-6. Status só pode ser `'Ativo'` ou `'Inativo'`
-7. O mesmo seller não pode ter dois produtos com o mesmo nome → `ConflictError`
-8. Status padrão é `'Ativo'`
-
-### ✅ Casos de teste obrigatórios
-
-| # | Caso | O que verificar |
-|---|---|---|
-| 4.1 | Produto válido, seller ativo | Retorna domínio correto; `product_repository.save` chamado uma vez |
-| 4.2 | Produto válido | Status padrão é `'Ativo'` e o `seller_id` está correto |
-| 4.3 | Seller inexistente | Levanta `NotFoundError` |
-| 4.4 | Seller **inativo** | Levanta `BusinessRuleError` e nada é salvo |
-| 4.5 | Nome vazio ou só espaços | Levanta `ValidationError` |
-| 4.6 | Nome com mais de 100 caracteres | Levanta `ValidationError` |
-| 4.7 | Preço zero ou negativo | Levanta `ValidationError` |
-| 4.8 | Preço não numérico (`"dez"`) | Levanta `ValidationError` |
-| 4.9 | Quantidade negativa | Levanta `ValidationError` |
-| 4.10 | Quantidade decimal (`1.5`) | Levanta `ValidationError` |
-| 4.11 | Status inválido (`'Pendente'`) | Levanta `ValidationError` |
-| 4.12 | Nome já existe para o seller | Levanta `ConflictError` |
-| 4.13 | `list_products` | Retorna a lista convertida em domínio |
-| 4.14 | `list_products` com seller inexistente | Levanta `NotFoundError` |
-
-> 💡 Nos casos 4.5 a 4.11, use `@pytest.mark.parametrize` em vez de copiar e colar o mesmo teste.
-
----
-
-# 📋 FLUXO 5 — Validadores (teste unitário puro, sem mock)
-
-**Arquivo a criar:** `tests/test_validators.py`
-
-Estas funções não têm dependência nenhuma — são o teste unitário mais puro que existe.
-Use `@pytest.mark.parametrize`.
-
-| # | Função | Casos |
-|---|---|---|
-| 5.1 | `is_valid_cnpj` | Válido com máscara, válido sem máscara, dígito verificador errado, menos de 14 dígitos, todos os dígitos iguais (`11111111111111`), `None` |
-| 5.2 | `is_valid_email` | Válido, sem `@`, sem domínio, sem TLD, vazio, `None` |
-| 5.3 | `is_valid_phone` | Válido com 11 dígitos, válido com 10, sem `+55`, com máscara, com letras |
-| 5.4 | `is_valid_password` | 6 caracteres (limite), 5 caracteres, vazia, não-string |
-| 5.5 | `normalize_cnpj` / `normalize_phone` | Removem a pontuação corretamente |
-| 5.6 | `SellerDomain.matches_code` | Código igual, diferente, `None`, com espaços em volta |
-| 5.7 | `SellerDomain.is_active` | `Ativo` → `True`, `Inativo` → `False` |
 
 ---
 
@@ -320,12 +236,12 @@ def test_create_seller_com_email_duplicado_nao_envia_mensagem(
 | **Uso correto de mocks** — isolamento real, sem banco e sem HTTP | 25% |
 | **Qualidade das asserções** — `assert_called_once_with`, `side_effect`, verificar o que **não** foi chamado | 15% |
 | **Organização** — nomes descritivos, padrão AAA, `parametrize`, sem repetição | 10% |
-| **Cobertura de código** — mínimo **80%** em `src/Application/Service/` e `src/Domain/` | 10% |
+| **Cobertura de código** — mínimo **80%** em `seller_service.py`, `whats_app.py`, `activation_code.py` e `validators.py` | 10% |
 
 ### Pontos extras
 
 - 🎁 Teste que **prova um bug** no código de produção (com explicação no docstring)
-- 🎁 Teste de **contrato HTTP** dos controllers usando `app.test_client()` com o service mockado
+- 🎁 Teste de **contrato HTTP** do `POST /api/sellers` usando `app.test_client()` com o service mockado
 - 🎁 Uso de `pytest-mock` (fixture `mocker`) em vez de `unittest.mock` direto
 
 ---
