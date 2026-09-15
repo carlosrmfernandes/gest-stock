@@ -5,6 +5,8 @@ Desenvolver um sistema para gestão de estoque e vendas de mini mercados, garant
 
 ---
 
+> 🧪 **Prova P1 de Automação de Testes:** o enunciado está em [README-PROVA-P1.md](README-PROVA-P1.md).
+
 ## 🚀 Funcionalidades Principais
 
 ### 1️⃣ Cadastro de Mini Mercado (Seller)
