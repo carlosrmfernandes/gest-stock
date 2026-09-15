@@ -6,6 +6,7 @@ __pycache__/
 # Virtual environment
 venv/
 env/
+.venv/
 .env
 
 # SQLite database
@@ -17,3 +18,9 @@ env/
 
 # OS
 .DS_Store
+
+# Testes
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
