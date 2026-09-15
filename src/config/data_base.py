@@ -26,6 +26,11 @@ def init_db(app):
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.init_app(app)
     
+    # Importa os models para que o SQLAlchemy conheça as tabelas antes do create_all
+    from src.Infrastructure.Model.user import User  # noqa: F401
+    from src.Infrastructure.Model.seller import Seller  # noqa: F401
+    from src.Infrastructure.Model.product import Product  # noqa: F401
+
     # Cria as tabelas automaticamente
     with app.app_context():
         db.create_all()
