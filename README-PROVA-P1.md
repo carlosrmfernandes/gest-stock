@@ -1,324 +1,401 @@
-# 🧪 Prova P1 — Automação de Testes
+🧪 Prova P1 — Automação de Testes
 
-**Projeto:** Gest Stock — Gestão de Estoque para Mini Mercados
-**Branch:** `p1`
-**Stack de testes:** `pytest` + `unittest.mock`
+Projeto: Gest Stock — Gestão de Estoque para Mini Mercados
+Branch: p1
+Stack de testes: pytest + unittest.mock
 
----
+📌 Objetivo
 
-## 📌 O que você precisa fazer
+O sistema já está implementado. Nesta prova, a tarefa é desenvolver testes automatizados para o cadastro de produtos.
 
-O sistema **já está implementado**. Sua tarefa é **escrever os testes**.
+O método a ser testado é:
 
-Você vai testar **um único método**:
-
-```python
-SellerService.create_seller(name, cnpj, email, phone, password)
-```
-
-É o cadastro de um mini mercado (seller): ele valida os dados, verifica duplicidade,
-salva no banco e dispara um código de 4 dígitos por WhatsApp/SMS.
-
-**Arquivo que você deve criar:** `tests/test_seller_service_create.py`
-
-> ⚠️ **Não altere o código de produção** (`src/`). Se você acha que encontrou um bug,
-> **escreva um teste que prove o bug** e explique no docstring. Isso vale ponto extra.
-
-> ℹ️ O projeto tem outras funcionalidades (ativação de seller, cadastro de produto).
-> **Elas não caem na prova.** Ignore-as.
-
----
-
-## 🚀 Preparando o ambiente
-
-```bash
-git checkout p1
-
-python -m venv .venv
-.venv\Scripts\activate         # Windows
-source .venv/bin/activate      # Linux/Mac
-
-pip install -r requirements.txt
-
-pytest                                       # roda os testes
-pytest --cov=src.Application.Service.seller_service --cov-report=term-missing
-```
-
----
-
-## 🏛️ O que o método faz (leia o código antes de testar)
-
-Abra [`src/Application/Service/seller_service.py`](src/Application/Service/seller_service.py).
-
-O `create_seller` conversa com **três dependências externas**:
-
-```
-                    ┌─────────────────────────┐
-                    │      SellerService      │
-                    │      .create_seller     │
-                    └───────────┬─────────────┘
-                                │
-        ┌───────────────────────┼───────────────────────┐
-        ▼                       ▼                       ▼
-┌──────────────┐      ┌──────────────────┐     ┌──────────────────┐
-│SellerReposit.│      │ActivationNotifier│     │generate_activa-  │
-│              │      │                  │     │tion_code         │
-│ vai no BANCO │      │ vai na INTERNET  │     │ usa RANDOM       │
-└──────────────┘      └──────────────────┘     └──────────────────┘
-        ▲                       ▲                       ▲
-        └───────────────────────┴───────────────────────┘
-                     ESTES TRÊS VOCÊ MOCKA
-```
-
-As três entram pelo **construtor**. É por isso que dá para mockar sem mágica nenhuma:
-
-```python
-service = SellerService(
-    repository=seller_repository,       # mock
-    notifier=notifier,                  # mock
-    code_generator=code_generator,      # mock
+ProductService.create_product(
+    seller_id,
+    name,
+    price,
+    quantity,
+    status=PRODUCT_ATIVO,
+    img=None
 )
-```
 
----
+Arquivo a ser criado
+tests/test_product_service_create.py
 
-# 🔧 OS MOCKS — leia esta seção com atenção
 
-## Regra única, sem exceção
+⚠️ Importante: não altere o código de produção localizado em src/.
 
-> ### **Todos os 16 testes desta prova usam os 3 mocks. Sempre os três.**
+Caso seja identificado um possível bug no código de produção, crie um teste que demonstre o comportamento incorreto e explique o problema no docstring do teste. Essa identificação pode valer ponto extra.
 
-Não existe teste aqui sem mock. Se você escreveu um teste que instancia
-`SellerService()` sem argumentos, **ele está errado** — vai tentar abrir o banco
-e mandar mensagem de verdade.
+🏛️ Funcionamento do método
 
-## Os 3 mocks
+O método create_product está localizado em:
 
-| Dependência real | Por que precisa de mock | Fixture pronta |
-|---|---|---|
-| `SellerRepository` | Faz `SELECT`/`INSERT` no banco de dados | `seller_repository` |
-| `ActivationNotifier` | Faz requisição HTTP para o Twilio (internet) | `notifier` |
-| `generate_activation_code` | Usa `random` — o código mudaria a cada execução | `code_generator` |
+src/Application/Service/product_service.py
 
-**Você não precisa criar nenhum deles.** Já estão prontos em
-[`tests/conftest.py`](tests/conftest.py) — é só pedir como parâmetro do teste.
 
-## O que cada fixture já vem fazendo
+O fluxo do método deve:
 
-| Fixture | Comportamento padrão |
-|---|---|
-| `seller_repository` | `find_by_email`, `find_by_cnpj`, `find_by_phone` retornam `None` (banco vazio) e `save` devolve o que recebeu |
-| `notifier` | `send_activation_code` funciona e retorna `'SM-fake-sid'` |
-| `code_generator` | Sempre retorna a string `'1234'` |
-| `seller_payload` | Dicionário com um cadastro **válido**, pronto para `**seller_payload` |
-| `active_seller` | Um seller já existente — use para **simular duplicidade** |
+Verificar se o seller_id existe.
 
-Ou seja: **o cenário feliz já vem configurado**. Você só mexe nos mocks quando quer
-provocar um erro.
+Verificar se o seller está ativo.
 
-## Como provocar cada cenário
+Validar o nome do produto.
 
-```python
-# ❶ Cenário feliz — não configure nada, os defaults já servem
-service = SellerService(seller_repository, notifier, code_generator)
+Validar o preço.
 
-# ❷ Simular "e-mail já cadastrado"  (idem para find_by_cnpj / find_by_phone)
-seller_repository.find_by_email.return_value = active_seller
+Validar a quantidade.
 
-# ❸ Simular "o Twilio caiu"
-from src.Domain.exceptions import NotificationError
-notifier.send_activation_code.side_effect = NotificationError('provedor fora do ar')
-```
+Validar o status.
 
-## Como verificar os mocks depois (isto vale nota)
+Verificar se já existe um produto com o mesmo nome para o seller.
 
-```python
-# Foi chamado exatamente uma vez?
-seller_repository.save.assert_called_once()
+Criar o objeto Product.
 
-# Foi chamado com os argumentos certos?
-notifier.send_activation_code.assert_called_once_with('+5511999999999', '1234')
+Salvar o produto.
 
-# NÃO foi chamado?  (essencial nos testes de erro)
-seller_repository.save.assert_not_called()
+Retornar o produto criado.
 
-# Pegar o objeto que foi passado para o mock, para inspecionar os campos
-seller_salvo = seller_repository.save.call_args[0][0]
-assert seller_salvo.cnpj == '11222333000181'
-```
+🔧 Mocks
 
-> 💡 O último é o truque mais importante da prova: o `create_seller` monta um objeto
-> `Seller` internamente. A única forma de olhar dentro dele é pegando pelo
-> `call_args` do mock de `save`.
+O método possui duas dependências externas que devem ser mockadas:
 
----
+SellerRepository
 
-# 📋 Os 16 testes obrigatórios
+ProductRepository
 
-### Regras que o `create_seller` implementa
+Essas dependências já estão disponíveis nas fixtures de:
 
-1. Todos os campos são obrigatórios
-2. CNPJ precisa ser válido (dígitos verificadores), aceita com ou sem máscara
-3. E-mail precisa ter formato válido
-4. Celular precisa estar no formato `+55DDNNNNNNNNN`
-5. Senha precisa ter no mínimo 6 caracteres
-6. CNPJ, e-mail e celular são **únicos** → `ConflictError`
-7. O CNPJ é salvo **sem máscara** e o e-mail em **minúsculas**
-8. A senha **nunca** é salva em texto puro
-9. O seller nasce com status **`Inativo`** e um código de ativação de 4 dígitos
-10. O código é enviado por WhatsApp/SMS **depois** de salvar
-11. Se o envio falhar, o erro `NotificationError` sobe para quem chamou
+tests/conftest.py
 
-### Grupo A — Cadastro válido (cenário feliz)
 
-**Mock a configurar: nenhum.** Use as fixtures como vêm.
+A utilização esperada é:
 
-| # | O que verificar |
-|---|---|
-| 1.1 | Retorna um domínio com `status == 'Inativo'` |
-| 1.2 | `seller_repository.save` foi chamado **uma vez** |
-| 1.3 | A senha salva é **diferente** de `'123456'` (foi hasheada) — use `call_args` |
-| 1.4 | O CNPJ foi salvo sem máscara e o e-mail em minúsculas — use `call_args` |
-| 1.5 | `notifier.send_activation_code` foi chamado com `('+5511999999999', '1234')` |
+service = ProductService(
+    seller_repository=seller_repository,
+    product_repository=product_repository,
+)
 
-### Grupo B — Dados inválidos → `ValidationError`
+SellerRepository
 
-**Mock a configurar: nenhum.** O erro acontece antes de tocar nas dependências.
-Em todos, use `with pytest.raises(ValidationError):`.
+É utilizado para consultar o seller informado.
 
-| # | Entrada inválida |
-|---|---|
-| 1.6 | Nome vazio |
-| 1.7 | CNPJ inválido (ex: `'11.222.333/0001-99'`) |
-| 1.8 | E-mail sem `@` |
-| 1.9 | Celular fora do formato (ex: `'11999999999'`, sem o `+55`) |
-| 1.10 | Senha com 5 caracteres |
-| 1.11 | Em **qualquer um** dos casos acima: `save` e `send_activation_code` **não** foram chamados |
+Para simular que o seller não existe:
 
-> 💡 Faça 1.6 a 1.10 com um único teste usando `@pytest.mark.parametrize`.
-> Copiar e colar cinco vezes perde ponto de organização.
+seller_repository.find_by_id.return_value = None
 
-### Grupo C — Duplicidade → `ConflictError`
 
-**Mock a configurar:** `seller_repository.find_by_*.return_value = active_seller`
+Para os cenários normais, utilize um seller ativo disponibilizado pelo conftest.py.
 
-| # | Cenário | O que configurar |
-|---|---|---|
-| 1.12 | E-mail já cadastrado | `seller_repository.find_by_email.return_value = active_seller` |
-| 1.13 | CNPJ já cadastrado | `seller_repository.find_by_cnpj.return_value = active_seller` |
-| 1.14 | Celular já cadastrado | `seller_repository.find_by_phone.return_value = active_seller` |
-| 1.15 | Em qualquer conflito | `save` **não** foi chamado e a mensagem **não** foi enviada |
+ProductRepository
 
-### Grupo D — Falha no provedor externo
+É utilizado para:
 
-**Mock a configurar:** `notifier.send_activation_code.side_effect = NotificationError(...)`
+verificar produtos duplicados;
 
-| # | O que verificar |
-|---|---|
-| 1.16 | O `NotificationError` **sobe** para quem chamou (`pytest.raises`), e o seller **já tinha sido salvo** antes da falha (`save.assert_called_once()`) |
+salvar o produto.
 
----
+Para indicar que não existe produto duplicado:
 
-# 📝 Exemplo resolvido
+product_repository.find_by_name_and_seller.return_value = None
 
-O padrão esperado — **Arrange / Act / Assert**, com os três mocks sempre presentes:
 
-```python
-import pytest
+Para indicar que já existe um produto:
 
-from src.Application.Service.seller_service import SellerService
-from src.Domain.exceptions import ConflictError
+product_repository.find_by_name_and_seller.return_value = existing_product
 
+📋 Testes obrigatórios
 
-def test_create_seller_envia_codigo_por_whatsapp(
-    seller_repository, notifier, code_generator, seller_payload
-):
-    """Cadastro válido deve enviar o código gerado para o celular informado."""
-    # Arrange — os 3 mocks entram pelo construtor; nada a configurar no cenário feliz
-    service = SellerService(
-        repository=seller_repository,
-        notifier=notifier,
-        code_generator=code_generator,
-    )
+Os testes devem cobrir as seguintes regras do create_product.
 
-    # Act
-    seller = service.create_seller(**seller_payload)
+1. Cadastro válido
 
-    # Assert
-    assert seller.status == 'Inativo'
-    notifier.send_activation_code.assert_called_once_with('+5511999999999', '1234')
+Um produto com dados válidos deve ser criado com sucesso.
 
+Verifique que:
 
-def test_create_seller_com_email_duplicado_nao_envia_mensagem(
-    seller_repository, notifier, code_generator, seller_payload, active_seller
-):
-    """Se o e-mail já existe, nada é salvo e nenhuma mensagem é enviada."""
-    # Arrange — aqui SIM configuramos um mock: o banco "já tem" esse e-mail
-    seller_repository.find_by_email.return_value = active_seller
-    service = SellerService(seller_repository, notifier, code_generator)
+o produto foi salvo;
 
-    # Act / Assert
-    with pytest.raises(ConflictError):
-        service.create_seller(**seller_payload)
+o produto criado foi retornado pelo método.
 
-    seller_repository.save.assert_not_called()
-    notifier.send_activation_code.assert_not_called()
-```
+2. Seller inexistente
 
----
+Quando o seller_id não existir, deve ocorrer:
 
-## 🎯 O que será avaliado
+NotFoundError
 
-| Critério | Peso |
-|---|---|
-| **Os 16 casos obrigatórios** cobertos | 40% |
-| **Uso correto dos 3 mocks** — nenhum teste toca banco ou internet | 25% |
-| **Qualidade das asserções** — `assert_called_once_with`, `call_args`, `side_effect`, e verificar o que **não** foi chamado | 15% |
-| **Organização** — nomes descritivos, padrão AAA, `parametrize`, sem repetição | 10% |
-| **Cobertura** — o `create_seller` **100% coberto** (veja abaixo como conferir) | 10% |
 
-#### Como conferir sua cobertura
+O produto não deve ser salvo.
 
-```bash
-pytest --cov=src.Application.Service.seller_service --cov-report=term-missing
-```
+3. Seller inativo
 
-O relatório vai mostrar uma coluna `Missing` com as linhas não cobertas.
-O arquivo `seller_service.py` tem **dois** métodos, e só o `create_seller`
-(linhas **37 a 94**) cai na prova. O `activate_seller` está fora do escopo.
+Quando o seller estiver inativo, deve ocorrer:
 
-✅ **Meta:** nenhuma linha entre 37 e 94 aparecendo em `Missing`.
-Com os 16 testes feitos, o número total do arquivo fica em torno de **74%** —
-isso está **certo**, o que falta é só o `activate_seller`. Não tente cobri-lo.
+BusinessRuleError
 
-### Pontos extras
 
-- 🎁 Teste que **prova um bug** no código de produção (com explicação no docstring)
-- 🎁 Teste de contrato HTTP do `POST /api/sellers` com `app.test_client()` e o service mockado
-- 🎁 Uso de `pytest-mock` (fixture `mocker`) em vez de `unittest.mock` direto
+O produto não deve ser salvo.
 
----
+4. Nome obrigatório
 
-## 📦 Entrega
+Um nome vazio deve gerar:
 
-1. Trabalhe a partir da branch `p1`
-2. Crie uma branch com seu nome: `git checkout -b p1-seu-nome`
-3. Seus testes ficam em `tests/test_seller_service_create.py`
-4. Commit final com o resultado de:
-   ```bash
-   pytest --cov=src.Application.Service.seller_service --cov-report=term-missing
-   ```
-5. `pytest` precisa rodar **verde** e **sem conexão com a internet**
+ValidationError
 
----
 
-## ❌ Erros que zeram o item
+Exemplo:
 
-- Instanciar `SellerService()` sem passar os mocks
-- Teste que faz requisição HTTP de verdade
-- Teste que grava no banco de dados
-- Teste que depende de `random` sem mock (resultado diferente a cada execução)
-- Alterar `src/` para fazer o teste passar
-- Teste sem nenhum `assert`
+name=""
 
-**Boa prova! 🚀**
+5. Nome contendo apenas espaços
+
+Um nome contendo somente espaços deve gerar:
+
+ValidationError
+
+
+Exemplo:
+
+name="   "
+
+6. Nome maior que 100 caracteres
+
+Um nome com 101 caracteres deve gerar:
+
+ValidationError
+
+
+Exemplo:
+
+name="A" * 101
+
+7. Nome tratado com strip()
+
+Ao informar:
+
+name="  Arroz  "
+
+
+o produto salvo deve possuir:
+
+product_salvo.name == "Arroz"
+
+8. Preço não numérico
+
+Um preço não numérico deve gerar:
+
+ValidationError
+
+
+Exemplo:
+
+price="10.50"
+
+9. Preço menor ou igual a zero
+
+Os valores abaixo devem gerar:
+
+ValidationError
+
+price=0
+
+price=-10
+
+10. Quantidade não inteira
+
+Os exemplos abaixo devem gerar:
+
+ValidationError
+
+quantity=1.5
+
+quantity="10"
+
+11. Quantidade negativa
+
+Uma quantidade negativa deve gerar:
+
+ValidationError
+
+
+Exemplo:
+
+quantity=-1
+
+
+A quantidade 0 deve ser considerada válida.
+
+12. Status inválido
+
+O status somente pode ser:
+
+PRODUCT_ATIVO
+
+
+ou:
+
+PRODUCT_INATIVO
+
+
+Qualquer outro valor deve gerar:
+
+ValidationError
+
+13. Produto duplicado
+
+O mesmo seller não pode possuir dois produtos com o mesmo nome.
+
+Simule um produto existente:
+
+product_repository.find_by_name_and_seller.return_value = existing_product
+
+
+Deve ocorrer:
+
+ConflictError
+
+
+O produto não deve ser salvo.
+
+14. Produto salvo com os dados corretos
+
+Utilize call_args para recuperar o objeto enviado ao save:
+
+product_salvo = product_repository.save.call_args[0][0]
+
+
+Verifique os seguintes dados:
+
+assert product_salvo.seller_id == seller_id
+assert product_salvo.name == "Arroz"
+assert product_salvo.price == 10.0
+assert product_salvo.quantity == 5
+assert product_salvo.status == PRODUCT_ATIVO
+
+15. Preço convertido para float
+
+Ao informar:
+
+price=10
+
+
+o produto salvo deve possuir:
+
+product_salvo.price == 10.0
+
+16. Imagem e retorno
+
+Ao informar:
+
+img="arroz.jpg"
+
+
+o produto salvo deve manter:
+
+product_salvo.img == "arroz.jpg"
+
+
+Além disso, o método deve retornar o produto criado.
+
+🔍 Verificação dos mocks
+Verificar se o produto foi salvo
+product_repository.save.assert_called_once()
+
+Verificar se o produto não foi salvo
+product_repository.save.assert_not_called()
+
+Verificar a consulta do seller
+seller_repository.find_by_id.assert_called_once_with(seller_id)
+
+Verificar a consulta de duplicidade
+product_repository.find_by_name_and_seller.assert_called_once_with(
+    "Arroz",
+    seller_id
+)
+
+Inspecionar o produto enviado ao save
+product_salvo = product_repository.save.call_args[0][0]
+
+⚠️ Comportamento esperado nos erros
+
+Nos cenários de erro, não basta verificar apenas a exceção.
+
+Sempre que o fluxo não deveria chegar ao salvamento, verifique também:
+
+product_repository.save.assert_not_called()
+
+
+O teste deve comprovar tanto:
+
+o erro esperado;
+
+quanto o comportamento esperado do sistema após o erro.
+
+⭐ Ponto extra — Identificação de Bug
+
+Caso seja encontrado um comportamento incorreto no código de produção:
+
+Não altere src/.
+
+Crie um teste que demonstre o problema e explique o comportamento esperado no docstring.
+
+Exemplo:
+
+def test_algum_comportamento():
+    """
+    Este teste demonstra um possível bug.
+
+    Quando ..., o método deveria ...
+    Porém, atualmente ...
+    """
+
+🚀 Executando os testes
+
+Para executar todos os testes:
+
+pytest
+
+
+Para verificar a cobertura do serviço:
+
+pytest --cov=src.Application.Service.product_service --cov-report=term-missing
+
+✅ Checklist
+
+ Cadastro válido
+
+ Seller inexistente
+
+ Seller inativo
+
+ Nome vazio
+
+ Nome somente com espaços
+
+ Nome acima de 100 caracteres
+
+ strip() do nome
+
+ Preço não numérico
+
+ Preço zero/negativo
+
+ Quantidade não inteira
+
+ Quantidade negativa
+
+ Status inválido
+
+ Produto duplicado
+
+ Dados corretos no save
+
+ Preço convertido para float
+
+ Imagem preservada e produto retornado
+
+📊 Total
+
+16 testes obrigatórios
+
+➕ Ponto extra para identificação e demonstração de um possível bug através de um teste.
